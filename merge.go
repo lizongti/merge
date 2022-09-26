@@ -54,6 +54,7 @@ func (m *merger) merge(dst reflect.Value, src reflect.Value) (reflect.Value, err
 	if src, err = m.resolve(src); err != nil {
 		return reflect.Value{}, err
 	}
+	dst.IsZero()
 
 	// if dst.Kind() != src.Kind() && m.mappingEnabled {
 	// 	return m.mapping(dst, src)
@@ -95,17 +96,23 @@ func (m *merger) resolve(v reflect.Value) (reflect.Value, error) {
 }
 
 func (m *merger) deepMerge(dst reflect.Value, src reflect.Value) (reflect.Value, error) {
-	switch dst.Kind() {
-	case reflect.Struct:
-		return m.deepMergeStruct(dst, src)
-	case reflect.Map:
-		return m.deepMergeMap(dst, src)
-	case reflect.Slice:
-		return m.deepMergeSlice(dst, src)
-	case reflect.Interface, reflect.Ptr:
-		return m.deepMergeElem(dst.Elem(), src.Elem())
+	kindGroup := resolveKindGroup(dst)
+	switch kindGroup {
+	case kindGroupContainer:
+		switch dst.Kind() {
+		case reflect.Struct:
+			return m.deepMergeStruct(dst, src)
+		case reflect.Map:
+			return m.deepMergeMap(dst, src)
+		case reflect.Slice:
+			return m.deepMergeSlice(dst, src)
+		}
+	case kindGroupReference:
+		return m.deepMergeReference(dst, src)
+	case kindGroupValue:
+		return m.deepMergeValue(dst, src)
 	default:
-		return m.deepMergeDefault(dst, src)
+		return reflect.Value{}, ErrInvalidValue
 	}
 }
 
@@ -121,16 +128,14 @@ func (m *merger) deepMergeSlice(dst reflect.Value, src reflect.Value) (reflect.V
 	return reflect.Value{}, nil
 }
 
-func (m *merger) deepMergeElem(dst reflect.Value, src reflect.Value) (reflect.Value, error) {
-	// if !dst.CanSet() {
-	// 	return fmt.Errorf("%w: %v", ErrNotSettable, dst)
-	// }
-
-	dst.Set(src)
+func (m *merger) deepMergeReference(dst reflect.Value, src reflect.Value) (reflect.Value, error) {
+	// resolve
+	// vRet := reflect.New(src.Type()).Elem()
+	// vRet.Set(src)
 	return reflect.Value{}, nil
 }
 
-func (m *merger) deepMergeDefault(dst reflect.Value, src reflect.Value) (reflect.Value, error) {
+func (m *merger) deepMergeValue(dst reflect.Value, src reflect.Value) (reflect.Value, error) {
 	vRet := reflect.New(src.Type()).Elem()
 	vRet.Set(src)
 	return vRet, nil

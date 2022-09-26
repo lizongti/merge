@@ -11,6 +11,7 @@ const (
 	RangeMap
 	RangeSlice
 	RangeStruct
+	RangeDefault
 )
 
 type Level int
