@@ -62,7 +62,8 @@ type strategy struct {
 }
 
 type Options struct {
-	Strategies map[Range]strategy
+	mappingEnabled bool
+	Strategies     map[Range]strategy
 }
 
 func WithStrategy(rng Range, style Style, isCover func(dst reflect.Value, src reflect.Value) bool) Option {

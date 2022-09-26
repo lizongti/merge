@@ -13,6 +13,10 @@ var (
 	ErrUnknownRange     = errors.New("unknown range")
 )
 
+func isContainer(v reflect.Value) bool {
+	return v.Kind() == reflect.Struct || v.Kind() == reflect.Map || v.Kind() == reflect.Slice
+}
+
 func resolveAddressableContainer(v reflect.Value) (reflect.Value, error) {
 	if !v.CanAddr() {
 		return reflect.Value{}, ErrNotAdrressable
@@ -29,7 +33,7 @@ func resolveContainer(v reflect.Value) (reflect.Value, error) {
 		return reflect.Value{}, err
 	}
 
-	if v.Kind() != reflect.Struct && v.Kind() != reflect.Map && v.Kind() != reflect.Slice {
+	if isContainer(v) {
 		return reflect.Value{}, ErrKindNotSupported
 	}
 
@@ -49,7 +53,7 @@ func resolve(v reflect.Value) (reflect.Value, error) {
 		return v, ErrInvalidValue
 	}
 	for {
-		if v.Kind() == reflect.Ptr {
+		if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
 			if v.IsNil() {
 				return v, ErrNilValue
 			}
