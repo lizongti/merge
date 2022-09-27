@@ -5,11 +5,11 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "examples/options",
+			"name": "tmp",
 			"type": "go",
 			"request": "launch",
 			"mode": "debug",
-			"program": "${workspaceRoot}/examples/options/main.go",
+			"program": "${workspaceRoot}/tmp/main.go",
 			"args": [],
 		},
 	]

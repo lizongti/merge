@@ -7,13 +7,14 @@ import (
 	"github.com/cloudlibraries/merge"
 )
 
-func set(a interface{}) {
-	v := reflect.ValueOf(a)
-	b := 20
-	v.Set(reflect.ValueOf(&b))
-}
-
 func main() {
+	var a int = 10
+	var b int = 1
 
-	fmt.Println(merge.Merge(10, 1))
+	ret := merge.MustMerge(&a, &b,
+		merge.WithResolver(merge.ResolverBoth),
+		merge.WithCondition(merge.ConditionCoverAll))
+	v := reflect.ValueOf(ret)
+	fmt.Println(v.Kind(), v.Elem().Kind())
+	
 }

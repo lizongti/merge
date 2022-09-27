@@ -44,99 +44,84 @@ func newMerger(options *Options) *merger {
 	}
 }
 
-func (m *merger) merge(dst reflect.Value, src reflect.Value) (reflect.Value, error) {
-	var err error
-
-	if dst, err = m.resolve(dst); err != nil {
+func (m *merger) merge(dst, src reflect.Value) (reflect.Value, error) {
+	dst, src, depth, err := resolve(dst, src, m.resolver)
+	if err != nil {
 		return reflect.Value{}, err
 	}
 
-	if src, err = m.resolve(src); err != nil {
-		return reflect.Value{}, err
-	}
-	dst.IsZero()
-
-	// if dst.Kind() != src.Kind() && m.mappingEnabled {
-	// 	return m.mapping(dst, src)
-	// }
-
-	return m.deepMerge(dst, src)
-}
-
-func (m *merger) resolve(v reflect.Value) (reflect.Value, error) {
-	if !v.IsValid() {
-		return v, ErrInvalidValue
-	}
-	switch m.resolver {
-	case ResolverNone:
-		return v, nil
-	case ResolverNormal:
-		if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
-			if v.IsNil() {
-				return v, ErrNilValue
-			}
-			v = v.Elem()
-		}
-		return v, nil
-	case ResolverDeep:
-		for {
-			if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
-				if v.IsNil() {
-					return v, ErrNilValue
-				}
-				v = v.Elem()
-			} else {
-				break
-			}
-		}
-		return v, nil
-	default:
-		return v, fmt.Errorf("%w: %v", ErrUnknownResolver, m.resolver)
-	}
-}
-
-func (m *merger) deepMerge(dst reflect.Value, src reflect.Value) (reflect.Value, error) {
-	kindGroup := resolveKindGroup(dst)
+	var vRet reflect.Value
+	kindGroup := getKindGroup(dst)
 	switch kindGroup {
 	case kindGroupContainer:
-		switch dst.Kind() {
-		case reflect.Struct:
-			return m.deepMergeStruct(dst, src)
-		case reflect.Map:
-			return m.deepMergeMap(dst, src)
-		case reflect.Slice:
-			return m.deepMergeSlice(dst, src)
+		vRet, err = m.mergeContainer(dst, src)
+		if err != nil {
+			return reflect.Value{}, err
 		}
-	case kindGroupReference:
-		return m.deepMergeReference(dst, src)
+		return makePointerInDepth(vRet, depth), nil
+	case kindGroupRefer:
+		vRet, err = m.mergeRefer(dst, src)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return makePointerInDepth(vRet, depth), nil
 	case kindGroupValue:
-		return m.deepMergeValue(dst, src)
+		vRet, err = m.mergeValue(dst, src)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return makePointerInDepth(vRet, depth), nil
 	default:
 		return reflect.Value{}, ErrInvalidValue
 	}
 }
 
-func (m *merger) deepMergeStruct(dst reflect.Value, src reflect.Value) (reflect.Value, error) {
-	return reflect.Value{}, nil
+func (m *merger) mergeContainer(dst, src reflect.Value) (reflect.Value, error) {
+	switch dst.Kind() {
+	case reflect.Struct:
+		return m.mergeStruct(dst, src)
+	case reflect.Map:
+		return m.mergeMap(dst, src)
+	case reflect.Slice:
+		return m.mergeSlice(dst, src)
+	case reflect.Array:
+		panic("not implemented")
+	case reflect.Chan:
+		panic("not implemented")
+	default:
+		return reflect.Value{},
+			fmt.Errorf("%w: %s", ErrKindNotSupported, dst.Kind())
+	}
 }
 
-func (m *merger) deepMergeMap(dst reflect.Value, src reflect.Value) (reflect.Value, error) {
-	return reflect.Value{}, nil
-}
+func (m *merger) mergeRefer(dst, src reflect.Value) (reflect.Value, error) {
+	if !m.conditions.canCover(dst, src) {
+		return dst, nil
+	}
 
-func (m *merger) deepMergeSlice(dst reflect.Value, src reflect.Value) (reflect.Value, error) {
-	return reflect.Value{}, nil
-}
-
-func (m *merger) deepMergeReference(dst reflect.Value, src reflect.Value) (reflect.Value, error) {
-	// resolve
-	// vRet := reflect.New(src.Type()).Elem()
-	// vRet.Set(src)
-	return reflect.Value{}, nil
-}
-
-func (m *merger) deepMergeValue(dst reflect.Value, src reflect.Value) (reflect.Value, error) {
 	vRet := reflect.New(src.Type()).Elem()
 	vRet.Set(src)
 	return vRet, nil
+}
+
+func (m *merger) mergeValue(dst, src reflect.Value) (reflect.Value, error) {
+	if !m.conditions.canCover(dst, src) {
+		return dst, nil
+	}
+
+	vRet := reflect.New(src.Type()).Elem()
+	vRet.Set(src)
+	return vRet, nil
+}
+
+func (m *merger) mergeStruct(dst, src reflect.Value) (reflect.Value, error) {
+	return reflect.Value{}, nil
+}
+
+func (m *merger) mergeMap(dst, src reflect.Value) (reflect.Value, error) {
+	return reflect.Value{}, nil
+}
+
+func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
+	return reflect.Value{}, nil
 }
