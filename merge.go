@@ -83,6 +83,7 @@ func (m *merger) mergeValue(dst, src reflect.Value) (reflect.Value, error) {
 }
 
 func (m *merger) mergeStruct(dst, src reflect.Value) (reflect.Value, error) {
+
 	return reflect.Value{}, nil
 }
 
@@ -94,7 +95,7 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 	var ret reflect.Value
 
 	switch m.sliceStrategy {
-	case SliceStrategyNone:
+	case SliceStrategyIgnore:
 		ret = makeValue(dst)
 
 	case SliceStrategyAppend:
