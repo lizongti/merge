@@ -6,7 +6,7 @@ type Condition func(dst reflect.Value, src reflect.Value) bool
 
 type Conditions []Condition
 
-func (c Conditions) canCover(dst reflect.Value, src reflect.Value) bool {
+func (c Conditions) canMerge(dst reflect.Value, src reflect.Value) bool {
 	for _, condition := range c {
 		if !condition(dst, src) {
 			return false

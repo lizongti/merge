@@ -47,3 +47,16 @@ func TestPointer(t *testing.T) {
 		merge.WithResolver(merge.ResolverBoth),
 		merge.WithCondition(merge.ConditionTypeCheck)).(*int))
 }
+
+func TestFunction(t *testing.T) {
+	type f = func() int
+	var (
+		a = func() int { return 10 }
+		b = func() int { return 1 }
+	)
+
+	assert.Equal(t, 1, merge.MustMerge(a, b).(f)())
+
+	assert.Equal(t, 1, merge.MustMerge(a, &b,
+		merge.WithResolver(merge.ResolverSingle)).(f)())
+}

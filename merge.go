@@ -2,6 +2,7 @@ package merge
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 )
 
@@ -50,68 +51,36 @@ func (m *merger) merge(dst, src reflect.Value) (reflect.Value, error) {
 		return reflect.Value{}, err
 	}
 
-	var vRet reflect.Value
-	kindGroup := getKindGroup(dst)
-	switch kindGroup {
-	case kindGroupContainer:
-		vRet, err = m.mergeContainer(dst, src)
-		if err != nil {
-			return reflect.Value{}, err
-		}
-		return makePointerInDepth(vRet, depth), nil
-	case kindGroupRefer:
-		vRet, err = m.mergeRefer(dst, src)
-		if err != nil {
-			return reflect.Value{}, err
-		}
-		return makePointerInDepth(vRet, depth), nil
-	case kindGroupValue:
-		vRet, err = m.mergeValue(dst, src)
-		if err != nil {
-			return reflect.Value{}, err
-		}
-		return makePointerInDepth(vRet, depth), nil
-	default:
-		return reflect.Value{}, ErrInvalidValue
-	}
-}
-
-func (m *merger) mergeContainer(dst, src reflect.Value) (reflect.Value, error) {
-	switch dst.Kind() {
-	case reflect.Struct:
-		return m.mergeStruct(dst, src)
-	case reflect.Map:
-		return m.mergeMap(dst, src)
-	case reflect.Slice:
-		return m.mergeSlice(dst, src)
-	case reflect.Array:
-		panic("not implemented")
-	case reflect.Chan:
-		panic("not implemented")
-	default:
-		return reflect.Value{},
-			fmt.Errorf("%w: %s", ErrKindNotSupported, dst.Kind())
-	}
-}
-
-func (m *merger) mergeRefer(dst, src reflect.Value) (reflect.Value, error) {
-	if !m.conditions.canCover(dst, src) {
+	if !m.conditions.canMerge(dst, src) {
 		return dst, nil
 	}
 
-	vRet := reflect.New(src.Type()).Elem()
-	vRet.Set(src)
-	return vRet, nil
+	var ret reflect.Value
+	switch dst.Kind() {
+	case reflect.Invalid:
+		return reflect.Value{}, ErrInvalidValue
+	case reflect.Map:
+		ret, err = m.mergeMap(dst, src)
+	case reflect.Slice:
+		ret, err = m.mergeSlice(dst, src)
+	case reflect.Struct:
+		ret, err = m.mergeStruct(dst, src)
+	// case reflect.Array:
+	// 	vRet, err = m.mergeArray(dst, src)
+	// case reflect.Chan:
+	// 	vRet, err = m.mergeChan(dst, src)
+	default:
+		ret, err = m.mergeValue(dst, src)
+	}
+
+	if err != nil {
+		return reflect.Value{}, err
+	}
+	return makePointerInDepth(ret, depth), nil
 }
 
 func (m *merger) mergeValue(dst, src reflect.Value) (reflect.Value, error) {
-	if !m.conditions.canCover(dst, src) {
-		return dst, nil
-	}
-
-	vRet := reflect.New(src.Type()).Elem()
-	vRet.Set(src)
-	return vRet, nil
+	return makeValue(src), nil
 }
 
 func (m *merger) mergeStruct(dst, src reflect.Value) (reflect.Value, error) {
@@ -123,5 +92,61 @@ func (m *merger) mergeMap(dst, src reflect.Value) (reflect.Value, error) {
 }
 
 func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
-	return reflect.Value{}, nil
+	var ret reflect.Value
+
+	if src.Type() != dst.Type() { // Slice and Element type must be the same
+		panic("not implemented")
+	}
+
+	switch m.sliceStrategy {
+	case SliceStrategyNone:
+		ret = makeValue(dst)
+
+	case SliceStrategyAppend:
+		ret = makeValue(reflect.AppendSlice(dst, src))
+
+	case SliceStrategyReplaceSlice:
+		ret = makeValue(src)
+
+	case SliceStrategyReplaceElem:
+		dst, src, depth, err := resolve(dst, src, m.resolver)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+
+		ret = makeZeroValue(dst)
+		max := int(math.Max(float64(dst.Len()), float64(src.Len())))
+		for index := 0; index < max; index++ {
+			var dstElem, srcElem reflect.Value
+			if index < dst.Len() {
+				dstElem = dst.Index(index)
+			}
+			if index < src.Len() {
+				srcElem = src.Index(index)
+			}
+			if m.conditions.canMerge(dstElem, srcElem) {
+				ret = reflect.Append(ret, makeValue(srcElem))
+			} else {
+				ret = reflect.Append(ret, makeValue(dstElem))
+			}
+		}
+
+		ret = makePointerInDepth(ret, depth)
+
+	case SliceStrategyReplaceDeep:
+		ret = makeZeroValue(dst)
+		for i := 0; i < src.Len(); i++ {
+			v, err := m.merge(dst.Index(i), src.Index(i))
+			if err != nil {
+				return reflect.Value{}, err
+			}
+			ret.Set(reflect.Append(ret, v))
+		}
+
+	default:
+		return reflect.Value{},
+			fmt.Errorf("%w: %v", ErrInvalidSliceStrategy, m.sliceStrategy)
+	}
+
+	return ret, nil
 }

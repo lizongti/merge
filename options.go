@@ -31,10 +31,9 @@ const (
 type Option func(*Options)
 
 type Options struct {
-	mappingEnabled bool
-	resolver       Resolver
-
-	conditions Conditions
+	resolver      Resolver
+	conditions    Conditions
+	sliceStrategy SliceStrategy
 }
 
 func WithResolver(resolver Resolver) Option {
@@ -43,14 +42,14 @@ func WithResolver(resolver Resolver) Option {
 	}
 }
 
-func WithStyle(style Style) Option {
-	return func(config *Options) {
-
-	}
-}
-
 func WithCondition(canCover Condition) Option {
 	return func(config *Options) {
 		config.conditions = append(config.conditions, canCover)
+	}
+}
+
+func WithSliceStrategy(strategy SliceStrategy) Option {
+	return func(config *Options) {
+		config.sliceStrategy = strategy
 	}
 }
