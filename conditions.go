@@ -22,3 +22,7 @@ func ConditionDstIsZero(dst reflect.Value, src reflect.Value) bool {
 func ConditionTypeCheck(dst reflect.Value, src reflect.Value) bool {
 	return dst.Type() == src.Type()
 }
+
+func ConditionSrcIsValid(dst reflect.Value, src reflect.Value) bool {
+	return src.IsValid()
+}

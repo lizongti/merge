@@ -57,8 +57,6 @@ func (m *merger) merge(dst, src reflect.Value) (reflect.Value, error) {
 
 	var ret reflect.Value
 	switch dst.Kind() {
-	case reflect.Invalid:
-		return reflect.Value{}, ErrInvalidValue
 	case reflect.Map:
 		ret, err = m.mergeMap(dst, src)
 	case reflect.Slice:
@@ -70,6 +68,7 @@ func (m *merger) merge(dst, src reflect.Value) (reflect.Value, error) {
 	// case reflect.Chan:
 	// 	vRet, err = m.mergeChan(dst, src)
 	default:
+		// Including reflect.Invalid
 		ret, err = m.mergeValue(dst, src)
 	}
 
@@ -108,8 +107,7 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 	case SliceStrategyReplaceSlice:
 		ret = makeValue(src)
 
-	case SliceStrategyReplaceElem:
-
+	case SliceStrategyReplaceElement:
 		ret = makeZeroValue(dst)
 		max := int(math.Max(float64(dst.Len()), float64(src.Len())))
 		for index := 0; index < max; index++ {
@@ -139,8 +137,19 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 
 	case SliceStrategyReplaceDeep:
 		ret = makeZeroValue(dst)
-		for i := 0; i < src.Len(); i++ {
-			v, err := m.merge(dst.Index(i), src.Index(i))
+		max := int(math.Max(float64(dst.Len()), float64(src.Len())))
+		for index := 0; index < max; index++ {
+			var (
+				dstElem, srcElem reflect.Value
+				err              error
+			)
+			if index < dst.Len() {
+				dstElem = dst.Index(index)
+			}
+			if index < src.Len() {
+				srcElem = src.Index(index)
+			}
+			v, err := m.merge(dstElem, srcElem)
 			if err != nil {
 				return reflect.Value{}, err
 			}

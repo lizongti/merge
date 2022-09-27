@@ -31,11 +31,11 @@ func makePointer(v reflect.Value) reflect.Value {
 }
 
 func makeValue(v reflect.Value) reflect.Value {
-	ret := reflect.Zero(v.Type())
+	ret := reflect.New(v.Type()).Elem()
 	ret.Set(v)
 	return ret
 }
 
 func makeZeroValue(v reflect.Value) reflect.Value {
-	return reflect.Zero(v.Type())
+	return reflect.New(v.Type()).Elem()
 }

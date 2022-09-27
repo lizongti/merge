@@ -6,6 +6,6 @@ const (
 	SliceStrategyNone SliceStrategy = iota
 	SliceStrategyAppend
 	SliceStrategyReplaceSlice
-	SliceStrategyReplaceElem
+	SliceStrategyReplaceElement
 	SliceStrategyReplaceDeep
 )
