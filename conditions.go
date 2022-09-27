@@ -8,17 +8,17 @@ type Conditions []Condition
 
 func (c Conditions) canCover(dst reflect.Value, src reflect.Value) bool {
 	for _, condition := range c {
-		if condition(dst, src) {
-			return true
+		if !condition(dst, src) {
+			return false
 		}
 	}
-	return false
-}
-
-func ConditionCoverAll(dst reflect.Value, src reflect.Value) bool {
 	return true
 }
 
-func ConditionCoverZero(dst reflect.Value, src reflect.Value) bool {
+func ConditionDstIsZero(dst reflect.Value, src reflect.Value) bool {
 	return dst.IsZero()
+}
+
+func ConditionTypeCheck(dst reflect.Value, src reflect.Value) bool {
+	return dst.Type() == src.Type()
 }

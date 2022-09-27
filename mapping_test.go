@@ -8,14 +8,13 @@ import (
 )
 
 func TestValue(t *testing.T) {
-	assert.Equal(t, 1, merge.MustMerge(10, 1,
-		merge.WithCondition(merge.ConditionCoverAll)))
+	assert.Equal(t, 1, merge.MustMerge(10, 1))
 
 	assert.Equal(t, 1, merge.MustMerge(0, 1,
-		merge.WithCondition(merge.ConditionCoverZero)))
+		merge.WithCondition(merge.ConditionDstIsZero)))
 
 	assert.Equal(t, 10, merge.MustMerge(10, 1,
-		merge.WithCondition(merge.ConditionCoverZero)))
+		merge.WithCondition(merge.ConditionDstIsZero)))
 }
 
 func TestPointer(t *testing.T) {
@@ -27,26 +26,24 @@ func TestPointer(t *testing.T) {
 	)
 
 	assert.Equal(t, &b, merge.MustMerge(&a, &b,
-		merge.WithResolver(merge.ResolverNone),
-		merge.WithCondition(merge.ConditionCoverAll)).(*int))
+		merge.WithResolver(merge.ResolverNone)).(*int))
 
 	assert.Equal(t, 1, *merge.MustMerge(&a, &b,
-		merge.WithResolver(merge.ResolverBoth),
-		merge.WithCondition(merge.ConditionCoverAll)).(*int))
+		merge.WithResolver(merge.ResolverBoth)).(*int))
 
 	assert.Equal(t, 1, **merge.MustMerge(&pa, &pb,
-		merge.WithResolver(merge.ResolverDeepBoth),
-		merge.WithCondition(merge.ConditionCoverAll)).(**int))
+		merge.WithResolver(merge.ResolverDeepBoth)).(**int))
 
 	assert.Equal(t, 1, *merge.MustMerge(&a, b,
-		merge.WithResolver(merge.ResolverSingle),
-		merge.WithCondition(merge.ConditionCoverAll)).(*int))
+		merge.WithResolver(merge.ResolverSingle)).(*int))
 
 	assert.Equal(t, 1, *merge.MustMerge(&a, &pb,
-		merge.WithResolver(merge.ResolverDeepSingle),
-		merge.WithCondition(merge.ConditionCoverAll)).(*int))
+		merge.WithResolver(merge.ResolverDeepSingle)).(*int))
 
 	assert.Equal(t, 1, merge.MustMerge(a, &pb,
-		merge.WithResolver(merge.ResolverDeepSingle),
-		merge.WithCondition(merge.ConditionCoverAll)).(int))
+		merge.WithResolver(merge.ResolverDeepSingle)).(int))
+
+	assert.Equal(t, 10, *merge.MustMerge(&a, b,
+		merge.WithResolver(merge.ResolverBoth),
+		merge.WithCondition(merge.ConditionTypeCheck)).(*int))
 }
