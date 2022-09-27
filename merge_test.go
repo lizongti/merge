@@ -144,9 +144,9 @@ func TestSlice(t *testing.T) {
 		merge.WithResolver(merge.ResolverSingle),
 	).(ss))
 
-	// assert.Equal(t, ss{{15, 7}, {8, 9}}, merge.MustMerge(c, g,
-	// 	merge.WithSliceStrategy(merge.SliceStrategyReplaceDeep),
-	// 	merge.WithCondition(merge.ConditionSrcIsValid),
-	// 	merge.WithResolver(merge.ResolverSingle),
-	// ).(ss))
+	assert.Equal(t, ss{{15, 7}, {8, 9}}, merge.MustMerge(c, g,
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceDeep),
+		merge.WithCondition(merge.ConditionSrcIsValid),
+		merge.WithResolver(merge.ResolverSingle),
+	).(ss))
 }
