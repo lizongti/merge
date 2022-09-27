@@ -109,29 +109,33 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 		ret = makeValue(src)
 
 	case SliceStrategyReplaceElem:
-		dst, src, depth, err := resolve(dst, src, m.resolver)
-		if err != nil {
-			return reflect.Value{}, err
-		}
 
 		ret = makeZeroValue(dst)
 		max := int(math.Max(float64(dst.Len()), float64(src.Len())))
 		for index := 0; index < max; index++ {
-			var dstElem, srcElem reflect.Value
+			var (
+				dstElem, srcElem reflect.Value
+				err              error
+				depth            int
+			)
 			if index < dst.Len() {
 				dstElem = dst.Index(index)
 			}
 			if index < src.Len() {
 				srcElem = src.Index(index)
 			}
+
+			dstElem, srcElem, depth, err = resolve(dstElem, srcElem, m.resolver)
+			if err != nil {
+				return reflect.Value{}, err
+			}
+
 			if m.conditions.canMerge(dstElem, srcElem) {
-				ret = reflect.Append(ret, makeValue(srcElem))
+				ret = reflect.Append(ret, makePointerInDepth(srcElem, depth))
 			} else {
-				ret = reflect.Append(ret, makeValue(dstElem))
+				ret = reflect.Append(ret, makePointerInDepth(dstElem, depth))
 			}
 		}
-
-		ret = makePointerInDepth(ret, depth)
 
 	case SliceStrategyReplaceDeep:
 		ret = makeZeroValue(dst)
