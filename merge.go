@@ -93,10 +93,6 @@ func (m *merger) mergeMap(dst, src reflect.Value) (reflect.Value, error) {
 func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 	var ret reflect.Value
 
-	if src.Type() != dst.Type() { // Slice and Element type must be the same
-		panic("not implemented")
-	}
-
 	switch m.sliceStrategy {
 	case SliceStrategyNone:
 		ret = makeValue(dst)

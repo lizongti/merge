@@ -26,26 +26,33 @@ func TestPointer(t *testing.T) {
 	)
 
 	assert.Equal(t, &b, merge.MustMerge(&a, &b,
-		merge.WithResolver(merge.ResolverNone)).(*int))
+		merge.WithResolver(merge.ResolverNone),
+	).(*int))
 
 	assert.Equal(t, 1, *merge.MustMerge(&a, &b,
-		merge.WithResolver(merge.ResolverBoth)).(*int))
+		merge.WithResolver(merge.ResolverBoth),
+	).(*int))
 
 	assert.Equal(t, 1, **merge.MustMerge(&pa, &pb,
-		merge.WithResolver(merge.ResolverDeepBoth)).(**int))
+		merge.WithResolver(merge.ResolverDeepBoth),
+	).(**int))
 
 	assert.Equal(t, 1, *merge.MustMerge(&a, b,
-		merge.WithResolver(merge.ResolverSingle)).(*int))
+		merge.WithResolver(merge.ResolverSingle),
+	).(*int))
 
 	assert.Equal(t, 1, *merge.MustMerge(&a, &pb,
-		merge.WithResolver(merge.ResolverDeepSingle)).(*int))
+		merge.WithResolver(merge.ResolverDeepSingle),
+	).(*int))
 
 	assert.Equal(t, 1, merge.MustMerge(a, &pb,
-		merge.WithResolver(merge.ResolverDeepSingle)).(int))
+		merge.WithResolver(merge.ResolverDeepSingle),
+	).(int))
 
 	assert.Equal(t, 10, *merge.MustMerge(&a, b,
 		merge.WithResolver(merge.ResolverBoth),
-		merge.WithCondition(merge.ConditionTypeCheck)).(*int))
+		merge.WithCondition(merge.ConditionTypeCheck),
+	).(*int))
 }
 
 func TestFunction(t *testing.T) {
@@ -64,6 +71,7 @@ func TestFunction(t *testing.T) {
 func TestSlice(t *testing.T) {
 	type s = []int
 	type ss = [][]int
+	type sps = []*[]int
 	var (
 		a = s{1, 2, 3}
 		b = s{4, 5}
@@ -71,6 +79,7 @@ func TestSlice(t *testing.T) {
 		d = ss{{10, 11}}
 		e = ss{{12, 13, 14}}
 		f = ss{{15}}
+		g = sps{{15}}
 	)
 
 	assert.Equal(t, s{1, 2, 3, 4, 5}, merge.MustMerge(a, b,
@@ -128,4 +137,16 @@ func TestSlice(t *testing.T) {
 		merge.WithSliceStrategy(merge.SliceStrategyReplaceDeep),
 		merge.WithCondition(merge.ConditionSrcIsValid),
 	).(ss))
+
+	assert.Equal(t, ss{{15}, {8, 9}}, merge.MustMerge(c, g,
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceElement),
+		merge.WithCondition(merge.ConditionSrcIsValid),
+		merge.WithResolver(merge.ResolverSingle),
+	).(ss))
+
+	// assert.Equal(t, ss{{15, 7}, {8, 9}}, merge.MustMerge(c, g,
+	// 	merge.WithSliceStrategy(merge.SliceStrategyReplaceDeep),
+	// 	merge.WithCondition(merge.ConditionSrcIsValid),
+	// 	merge.WithResolver(merge.ResolverSingle),
+	// ).(ss))
 }
