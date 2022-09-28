@@ -31,17 +31,22 @@ const (
 type Option func(*Options)
 
 type Options struct {
-	resolver       Resolver
-	conditions     Conditions
+	conditions Conditions
+
+	defaultResolver Resolver
+	sliceResolver   Resolver
+	structResolver  Resolver
+
 	sliceStrategy  SliceStrategy
 	structStrategy StructStrategy
 }
 
 var optionsDefault = Options{
-	resolver:       ResolverNone,
-	conditions:     newConditions(),
-	sliceStrategy:  SliceStrategyIgnore,
-	structStrategy: StructStrategyIgnore,
+	defaultResolver: ResolverNone,
+	structResolver:  ResolverNone,
+	conditions:      newConditions(),
+	sliceStrategy:   SliceStrategyIgnore,
+	structStrategy:  StructStrategyIgnore,
 }
 
 func newOptions(opts []Option) *Options {
@@ -52,9 +57,21 @@ func newOptions(opts []Option) *Options {
 	return &config
 }
 
-func WithResolver(resolver Resolver) Option {
+func WithDefaultResolver(resolver Resolver) Option {
 	return func(config *Options) {
-		config.resolver = resolver
+		config.defaultResolver = resolver
+	}
+}
+
+func WithSliceResolver(resolver Resolver) Option {
+	return func(config *Options) {
+		config.sliceResolver = resolver
+	}
+}
+
+func WithStructResolver(resolver Resolver) Option {
+	return func(config *Options) {
+		config.structResolver = resolver
 	}
 }
 

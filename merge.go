@@ -17,7 +17,7 @@ func Merge(dst, src interface{}, opts ...Option) (interface{}, error) {
 	vDst := reflect.ValueOf(dst)
 	vSrc := reflect.ValueOf(src)
 
-	vRet, err := merger.merge(vDst, vSrc)
+	vRet, err := merger.merge(vDst, vSrc, merger.defaultResolver)
 	if err != nil {
 		return nil, err
 	}
@@ -43,8 +43,8 @@ func newMerger(options *Options) *merger {
 	}
 }
 
-func (m *merger) merge(dst, src reflect.Value) (reflect.Value, error) {
-	dst, src, depth, err := resolve(dst, src, m.resolver)
+func (m *merger) merge(dst, src reflect.Value, resolver Resolver) (reflect.Value, error) {
+	dst, src, depth, err := resolve(dst, src, resolver)
 	if err != nil {
 		return reflect.Value{}, err
 	}
@@ -91,29 +91,31 @@ func (m *merger) mergeStruct(dst, src reflect.Value) (reflect.Value, error) {
 		ret = makeValue(src)
 
 	case StructStrategyReplaceFields:
-		src = makePointer(src).Elem()
-		dst = makePointer(dst).Elem()
+		src = makeValue(src)
+		dst = makeValue(dst)
 		ret = makeZeroValue(dst)
 		for i := 0; i < dst.NumField(); i++ {
-			dstField := dst.Field(i)
-			srcField := src.Field(i)
-			if m.conditions.Check(dstField, srcField) {
-				setField(ret.Field(i), getField(srcField))
+			dstValue := getValueFromField(dst.Field(i))
+			srcValue := getValueFromField(src.Field(i))
+			if m.conditions.Check(dstValue, srcValue) {
+				setValueToField(ret.Field(i), srcValue)
 			} else {
-				setField(ret.Field(i), getField(dstField))
+				setValueToField(ret.Field(i), dstValue)
 			}
 		}
 
 	case StructStrategyReplaceDeep:
+		src = makeValue(src)
+		dst = makeValue(dst)
 		ret = makeZeroValue(dst)
 		for i := 0; i < dst.NumField(); i++ {
-			dstField := dst.Field(i)
-			srcField := src.Field(i)
-			fRet, err := m.merge(dstField, srcField)
+			dstValue := getValueFromField(dst.Field(i))
+			srcValue := getValueFromField(src.Field(i))
+			v, err := m.merge(dstValue, srcValue, m.structResolver)
 			if err != nil {
 				return reflect.Value{}, err
 			}
-			ret.Field(i).Set(fRet)
+			setValueToField(ret.Field(i), v)
 		}
 	}
 
@@ -153,7 +155,7 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 				srcElem = src.Index(index)
 			}
 
-			dstElem, srcElem, depth, err = resolve(dstElem, srcElem, m.resolver)
+			dstElem, srcElem, depth, err = resolve(dstElem, srcElem, m.defaultResolver)
 			if err != nil {
 				return reflect.Value{}, err
 			}
@@ -179,7 +181,7 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 			if index < src.Len() {
 				srcElem = src.Index(index)
 			}
-			v, err := m.merge(dstElem, srcElem)
+			v, err := m.merge(dstElem, srcElem, m.sliceResolver)
 			if err != nil {
 				return reflect.Value{}, err
 			}

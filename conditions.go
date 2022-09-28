@@ -34,3 +34,7 @@ func ConditionTypeCheck(dst reflect.Value, src reflect.Value) bool {
 func ConditionSrcIsValid(dst reflect.Value, src reflect.Value) bool {
 	return src.IsValid()
 }
+
+func ConditionSrcIsNotZero(dst reflect.Value, src reflect.Value) bool {
+	return !src.IsZero()
+}
