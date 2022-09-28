@@ -91,9 +91,40 @@ func (m *merger) mergeStruct(dst, src reflect.Value) (reflect.Value, error) {
 		ret = makeValue(src)
 
 	case StructStrategyReplaceFields:
+		ret = makeZeroValue(dst)
+		for i := 0; i < dst.NumField(); i++ {
+			var (
+				dstField, srcField reflect.Value
+				err                error
+				depth              int
+			)
+
+			dstField = dst.Field(i)
+			srcField = src.Field(i)
+
+			dstField, srcField, depth, err = resolve(dstField, srcField, m.resolver)
+			if err != nil {
+				return reflect.Value{}, err
+			}
+
+			if m.conditions.Check(dstField, srcField) {
+				ret.Field(i).Set(makePointerInDepth(srcField, depth))
+			} else {
+				ret.Field(i).Set(makePointerInDepth(dstField, depth))
+			}
+		}
 
 	case StructStrategyReplaceDeep:
-
+		ret = makeZeroValue(dst)
+		for i := 0; i < dst.NumField(); i++ {
+			dstField := dst.Field(i)
+			srcField := src.Field(i)
+			fRet, err := m.merge(dstField, srcField)
+			if err != nil {
+				return reflect.Value{}, err
+			}
+			ret.Field(i).Set(fRet)
+		}
 	}
 
 	return ret, nil
