@@ -6,7 +6,7 @@ const (
 	SliceStrategyIgnore SliceStrategy = iota
 	SliceStrategyAppend
 	SliceStrategyReplaceSlice
-	SliceStrategyReplaceElement
+	SliceStrategyReplaceElements
 	SliceStrategyReplaceDeep
 )
 
@@ -15,8 +15,6 @@ type StructStrategy int
 const (
 	StructStrategyIgnore StructStrategy = iota
 	StructStrategyReplaceStruct
-	StructStrategyReplaceField
-	StructStrategyReplaceExportedField
-	StructStrategyReplaceDeepField
-	StructStrategyReplaceDeepExportedField
+	StructStrategyReplaceFields
+	StructStrategyReplaceDeep
 )

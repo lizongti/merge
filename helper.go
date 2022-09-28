@@ -39,3 +39,9 @@ func makeValue(v reflect.Value) reflect.Value {
 func makeZeroValue(v reflect.Value) reflect.Value {
 	return reflect.New(v.Type()).Elem()
 }
+
+func getFieldValue(v reflect.Value, name string) reflect.Value {
+	return v.FieldByNameFunc(func(s string) bool {
+		return s == name
+	})
+}

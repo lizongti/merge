@@ -31,9 +31,25 @@ const (
 type Option func(*Options)
 
 type Options struct {
-	resolver      Resolver
-	conditions    Conditions
-	sliceStrategy SliceStrategy
+	resolver       Resolver
+	conditions     Conditions
+	sliceStrategy  SliceStrategy
+	structStrategy StructStrategy
+}
+
+var optionsDefault = Options{
+	resolver:       ResolverNone,
+	conditions:     newConditions(),
+	sliceStrategy:  SliceStrategyIgnore,
+	structStrategy: StructStrategyIgnore,
+}
+
+func newOptions(opts []Option) *Options {
+	config := optionsDefault
+	for _, opt := range opts {
+		opt(&config)
+	}
+	return &config
 }
 
 func WithResolver(resolver Resolver) Option {
@@ -51,5 +67,11 @@ func WithCondition(canCover Condition) Option {
 func WithSliceStrategy(strategy SliceStrategy) Option {
 	return func(config *Options) {
 		config.sliceStrategy = strategy
+	}
+}
+
+func WithStructStrategy(strategy StructStrategy) Option {
+	return func(config *Options) {
+		config.structStrategy = strategy
 	}
 }

@@ -11,15 +11,13 @@ import (
 // and dst must be a pointer to struct.
 // It won't merge unexported (private) fields and will do recursively any exported field.
 func Merge(dst, src interface{}, opts ...Option) (interface{}, error) {
-	options := &Options{}
-	for _, opt := range opts {
-		opt(options)
-	}
+	options := newOptions(opts)
+	merger := newMerger(options)
 
 	vDst := reflect.ValueOf(dst)
 	vSrc := reflect.ValueOf(src)
 
-	vRet, err := newMerger(options).merge(vDst, vSrc)
+	vRet, err := merger.merge(vDst, vSrc)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +49,7 @@ func (m *merger) merge(dst, src reflect.Value) (reflect.Value, error) {
 		return reflect.Value{}, err
 	}
 
-	if !m.conditions.canMerge(dst, src) {
+	if !m.conditions.Check(dst, src) {
 		return dst, nil
 	}
 
@@ -83,8 +81,22 @@ func (m *merger) mergeValue(dst, src reflect.Value) (reflect.Value, error) {
 }
 
 func (m *merger) mergeStruct(dst, src reflect.Value) (reflect.Value, error) {
+	var ret reflect.Value
 
-	return reflect.Value{}, nil
+	switch m.structStrategy {
+	case StructStrategyIgnore:
+		ret = makeValue(dst)
+
+	case StructStrategyReplaceStruct:
+		ret = makeValue(src)
+
+	case StructStrategyReplaceFields:
+
+	case StructStrategyReplaceDeep:
+
+	}
+
+	return ret, nil
 }
 
 func (m *merger) mergeMap(dst, src reflect.Value) (reflect.Value, error) {
@@ -104,7 +116,7 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 	case SliceStrategyReplaceSlice:
 		ret = makeValue(src)
 
-	case SliceStrategyReplaceElement:
+	case SliceStrategyReplaceElements:
 		ret = makeZeroValue(dst)
 		max := int(math.Max(float64(dst.Len()), float64(src.Len())))
 		for index := 0; index < max; index++ {
@@ -125,7 +137,7 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 				return reflect.Value{}, err
 			}
 
-			if m.conditions.canMerge(dstElem, srcElem) {
+			if m.conditions.Check(dstElem, srcElem) {
 				ret = reflect.Append(ret, makePointerInDepth(srcElem, depth))
 			} else {
 				ret = reflect.Append(ret, makePointerInDepth(dstElem, depth))

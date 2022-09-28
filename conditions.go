@@ -2,11 +2,19 @@ package merge
 
 import "reflect"
 
+var conditionsDefault = Conditions{
+	ConditionSrcIsValid,
+}
+
 type Condition func(dst reflect.Value, src reflect.Value) bool
 
 type Conditions []Condition
 
-func (c Conditions) canMerge(dst reflect.Value, src reflect.Value) bool {
+func newConditions() Conditions {
+	return append([]Condition{}, conditionsDefault...)
+}
+
+func (c Conditions) Check(dst reflect.Value, src reflect.Value) bool {
 	for _, condition := range c {
 		if !condition(dst, src) {
 			return false
