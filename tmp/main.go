@@ -3,30 +3,42 @@ package main
 import (
 	"fmt"
 	"reflect"
-
-	"github.com/cloudlibraries/merge/t"
+	"unsafe"
 )
 
-type B struct {
-	C int
+type b struct {
+	c int
 }
 type A struct {
-	B
+	b
 	d int
 }
 
 func main() {
-	var f t.F
+	// GetUnexportedField(reflect.ValueOf(&Foo{}).Elem().FieldByName("unexportedField"))
+	var f A
+	// ret := reflect.New(reflect.ValueOf(f).Type()).Elem()
+	ret := reflect.ValueOf(f)
+	field := ret.FieldByName("b")
 	// v := reflect.TypeOf(a)
 	// for i := 0; i < v.NumField(); i++ {
 	// 	field := v.Field(i)
 	// 	fmt.Println(field.Name, field.Anonymous, ast.IsExported(field.Name), len(field.PkgPath) == 0)
 	// }
-	fmt.Println(getUnexportedField(reflect.ValueOf(f), "g"))
+	// fmt.Println(getUnexportedField(reflect.ValueOf(f), "g"))
+
+	SetUnexportedField(field, b{c: 1})
+	// *(reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).Interface().(*int)) = 1
+
+	fmt.Println(f)
 }
 
-func getUnexportedField(v reflect.Value, name string) reflect.Value {
-	return v.FieldByNameFunc(func(s string) bool {
-		return s == name
-	})
+type Foo struct {
+	unexportedField string
+}
+
+func SetUnexportedField(field reflect.Value, value interface{}) {
+	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).
+		Elem().
+		Set(reflect.ValueOf(value))
 }

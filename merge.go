@@ -91,26 +91,16 @@ func (m *merger) mergeStruct(dst, src reflect.Value) (reflect.Value, error) {
 		ret = makeValue(src)
 
 	case StructStrategyReplaceFields:
+		src = makePointer(src).Elem()
+		dst = makePointer(dst).Elem()
 		ret = makeZeroValue(dst)
 		for i := 0; i < dst.NumField(); i++ {
-			var (
-				dstField, srcField reflect.Value
-				err                error
-				depth              int
-			)
-
-			dstField = dst.Field(i)
-			srcField = src.Field(i)
-
-			dstField, srcField, depth, err = resolve(dstField, srcField, m.resolver)
-			if err != nil {
-				return reflect.Value{}, err
-			}
-
+			dstField := dst.Field(i)
+			srcField := src.Field(i)
 			if m.conditions.Check(dstField, srcField) {
-				ret.Field(i).Set(makePointerInDepth(srcField, depth))
+				setField(ret.Field(i), getField(srcField))
 			} else {
-				ret.Field(i).Set(makePointerInDepth(dstField, depth))
+				setField(ret.Field(i), getField(dstField))
 			}
 		}
 

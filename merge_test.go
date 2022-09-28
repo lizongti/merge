@@ -140,3 +140,25 @@ func TestSlice(t *testing.T) {
 		merge.WithResolver(merge.ResolverSingle),
 	).(ss))
 }
+
+func TestStruct(t *testing.T) {
+	type a struct {
+		A int
+	}
+	type b struct {
+		B int
+		a a
+	}
+
+	assert.Equal(t, b{B: 1}, merge.MustMerge(b{B: 1}, b{a: a{A: 1}},
+		merge.WithStructStrategy(merge.StructStrategyIgnore),
+	).(b))
+
+	assert.Equal(t, b{a: a{A: 1}}, merge.MustMerge(b{B: 1}, b{a: a{A: 1}},
+		merge.WithStructStrategy(merge.StructStrategyReplaceStruct),
+	).(b))
+
+	assert.Equal(t, b{B: 0, a: a{A: 1}}, merge.MustMerge(b{B: 1}, b{a: a{A: 1}},
+		merge.WithStructStrategy(merge.StructStrategyReplaceFields),
+	).(b))
+}

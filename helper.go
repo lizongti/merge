@@ -3,6 +3,7 @@ package merge
 import (
 	"errors"
 	"reflect"
+	"unsafe"
 )
 
 var (
@@ -40,8 +41,29 @@ func makeZeroValue(v reflect.Value) reflect.Value {
 	return reflect.New(v.Type()).Elem()
 }
 
-func getFieldValue(v reflect.Value, name string) reflect.Value {
+func getFieldByName(v reflect.Value, name string) reflect.Value {
 	return v.FieldByNameFunc(func(s string) bool {
 		return s == name
 	})
 }
+
+func setField(field reflect.Value, value reflect.Value) {
+	unsafePtr := unsafe.Pointer(field.UnsafeAddr())
+	reflect.NewAt(field.Type(), unsafePtr).Elem().Set(value)
+}
+
+func getField(field reflect.Value) reflect.Value {
+	unsafePtr := unsafe.Pointer(field.UnsafeAddr())
+	return reflect.NewAt(field.Type(), unsafePtr).Elem()
+}
+
+// func SetUnexportedField(field reflect.Value, v any) {
+// 	reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).
+// 		Elem().
+// 		Set(reflect.ValueOf(v))
+// }
+
+// func GetUnexportedField(field reflect.Value) interface{} {
+// 	return reflect.NewAt(field.Type(), unsafe.Pointer(field.UnsafeAddr())).
+// 		Elem().Interface()
+// }
