@@ -43,7 +43,8 @@ func newMerger(options *Options) *merger {
 	}
 }
 
-func (m *merger) merge(dst, src reflect.Value, resolver Resolver) (reflect.Value, error) {
+func (m *merger) merge(dst, src reflect.Value, resolver Resolver) (
+	reflect.Value, error) {
 	dst, src, depth, err := resolve(dst, src, resolver)
 	if err != nil {
 		return reflect.Value{}, err
@@ -155,7 +156,8 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 				srcElem = src.Index(index)
 			}
 
-			dstElem, srcElem, depth, err = resolve(dstElem, srcElem, m.defaultResolver)
+			dstElem, srcElem, depth, err =
+				resolve(dstElem, srcElem, m.sliceResolver)
 			if err != nil {
 				return reflect.Value{}, err
 			}
