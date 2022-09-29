@@ -33,6 +33,19 @@ func MustMerge(dst, src interface{}, opts ...Option) interface{} {
 	return v
 }
 
+func SafeMerge(dst, src interface{}, opts ...Option) (_ interface{}, err error) {
+	defer func() {
+		if v := recover(); v != nil {
+			var ok bool
+			if err, ok = v.(error); !ok {
+				err = fmt.Errorf("panic: %v", v)
+			}
+		}
+	}()
+
+	return Merge(dst, src, opts...)
+}
+
 type merger struct {
 	*Options
 }
@@ -145,8 +158,8 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 		ret = makeValue(src)
 
 	case SliceStrategyReplaceElementsDynamic:
-		ret = makeZeroValue(dst)
 		max := int(math.Max(float64(dst.Len()), float64(src.Len())))
+		ret = makeZeroValue(dst)
 		for index := 0; index < max; index++ {
 			var (
 				dstElem, srcElem reflect.Value
@@ -202,8 +215,8 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 		}
 
 	case SliceStrategyReplaceDeepDynamic:
-		ret = makeZeroValue(dst)
 		max := int(math.Max(float64(dst.Len()), float64(src.Len())))
+		ret = makeZeroValue(dst)
 		for index := 0; index < max; index++ {
 			var (
 				dstElem, srcElem reflect.Value
@@ -260,36 +273,7 @@ func (m *merger) mergeArray(dst, src reflect.Value) (reflect.Value, error) {
 	case ArrayStrategyReplaceArray:
 		ret = makeValue(src)
 
-	case ArrayStrategyReplaceElementsDynamic:
-		ret = makeZeroValue(dst)
-		max := int(math.Max(float64(dst.Len()), float64(src.Len())))
-		for index := 0; index < max; index++ {
-			var (
-				dstElem, srcElem reflect.Value
-				err              error
-				depth            int
-			)
-			if index < dst.Len() {
-				dstElem = dst.Index(index)
-			}
-			if index < src.Len() {
-				srcElem = src.Index(index)
-			}
-
-			dstElem, srcElem, depth, err =
-				resolve(dstElem, srcElem, m.arrayResolver)
-			if err != nil {
-				return reflect.Value{}, err
-			}
-
-			if m.conditions.Check(dstElem, srcElem) {
-				ret.Index(index).Set(makePointerInDepth(srcElem, depth))
-			} else {
-				ret.Index(index).Set(makePointerInDepth(dstElem, depth))
-			}
-		}
-
-	case ArrayStrategyReplaceElementsStatic:
+	case ArrayStrategyReplaceElements:
 		ret = makeZeroValue(dst)
 		for index := 0; index < dst.Len(); index++ {
 			var (
@@ -317,28 +301,7 @@ func (m *merger) mergeArray(dst, src reflect.Value) (reflect.Value, error) {
 			}
 		}
 
-	case ArrayStrategyReplaceDeepDynamic:
-		ret = makeZeroValue(dst)
-		max := int(math.Max(float64(dst.Len()), float64(src.Len())))
-		for index := 0; index < max; index++ {
-			var (
-				dstElem, srcElem reflect.Value
-				err              error
-			)
-			if index < dst.Len() {
-				dstElem = dst.Index(index)
-			}
-			if index < src.Len() {
-				srcElem = src.Index(index)
-			}
-			v, err := m.merge(dstElem, srcElem, m.arrayResolver)
-			if err != nil {
-				return reflect.Value{}, err
-			}
-			ret.Index(index).Set(v)
-		}
-
-	case ArrayStrategyReplaceDeepStatic:
+	case ArrayStrategyReplaceDeep:
 		ret = makeZeroValue(dst)
 		for index := 0; index < dst.Len(); index++ {
 			var (

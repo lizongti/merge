@@ -81,6 +81,12 @@ func WithStructResolver(resolver Resolver) Option {
 	}
 }
 
+func WithArrayResolver(resolver Resolver) Option {
+	return func(config *Options) {
+		config.arrayResolver = resolver
+	}
+}
+
 func WithCondition(canCover Condition) Option {
 	return func(config *Options) {
 		config.conditions = append(config.conditions, canCover)
@@ -96,5 +102,11 @@ func WithSliceStrategy(strategy SliceStrategy) Option {
 func WithStructStrategy(strategy StructStrategy) Option {
 	return func(config *Options) {
 		config.structStrategy = strategy
+	}
+}
+
+func WithArrayStrategy(strategy ArrayStrategy) Option {
+	return func(config *Options) {
+		config.arrayStrategy = strategy
 	}
 }

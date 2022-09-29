@@ -58,22 +58,16 @@ type ArrayStrategy int
 
 const (
 	ArrayStrategyIgnore ArrayStrategy = iota
-	ArrayStrategyAppend
 	ArrayStrategyReplaceArray
-	ArrayStrategyReplaceElementsDynamic
-	ArrayStrategyReplaceElementsStatic
-	ArrayStrategyReplaceDeepDynamic
-	ArrayStrategyReplaceDeepStatic
+	ArrayStrategyReplaceElements
+	ArrayStrategyReplaceDeep
 )
 
 var arrayStrategyNames = map[ArrayStrategy]string{
-	ArrayStrategyIgnore:                 "Ignore",
-	ArrayStrategyAppend:                 "Append",
-	ArrayStrategyReplaceArray:           "ReplaceArray",
-	ArrayStrategyReplaceElementsDynamic: "ReplaceElementsDynamic",
-	ArrayStrategyReplaceElementsStatic:  "ReplaceElementsStatic",
-	ArrayStrategyReplaceDeepDynamic:     "ReplaceDeepDynamic",
-	ArrayStrategyReplaceDeepStatic:      "ReplaceDeepStatic",
+	ArrayStrategyIgnore:          "Ignore",
+	ArrayStrategyReplaceArray:    "ReplaceArray",
+	ArrayStrategyReplaceElements: "ReplaceElementsStatic",
+	ArrayStrategyReplaceDeep:     "ReplaceDeepStatic",
 }
 
 func (s ArrayStrategy) String() string {

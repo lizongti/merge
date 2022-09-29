@@ -69,9 +69,11 @@ func TestFunction(t *testing.T) {
 }
 
 func TestSlice(t *testing.T) {
-	type s = []int
-	type ss = [][]int
-	type sps = []*[]int
+	type (
+		s   = []int
+		ss  = [][]int
+		sps = []*[]int
+	)
 	var (
 		a = s{1, 2, 3}
 		b = s{4, 5}
@@ -150,56 +152,58 @@ func TestSlice(t *testing.T) {
 }
 
 func TestStruct(t *testing.T) {
-	type a struct {
-		A int
-	}
-	type b struct {
-		B int
-		a a
-	}
-	type c struct {
-		C int
-		a *a
-	}
+	type (
+		a struct {
+			A int
+		}
+		b struct {
+			B int
+			a a
+		}
+		c struct {
+			C int
+			a *a
+		}
+	)
 	var (
-		// s1 = b{B: 1}
-		// s2 = b{a: a{A: 1}}
+		s1 = b{B: 1}
+		s2 = b{a: a{A: 1}}
 		s3 = c{C: 1}
 		s4 = &c{a: &a{A: 1}}
 	)
 
-	// assert.Equal(t, b{B: 1}, merge.MustMerge(s1, s2,
-	// 	merge.WithStructStrategy(merge.StructStrategyIgnore),
-	// ).(b))
+	assert.Equal(t, b{B: 1}, merge.MustMerge(s1, s2,
+		merge.WithStructStrategy(merge.StructStrategyIgnore),
+	).(b))
 
-	// assert.Equal(t, b{a: a{A: 1}}, merge.MustMerge(s1, s2,
-	// 	merge.WithStructStrategy(merge.StructStrategyReplaceStruct),
-	// ).(b))
+	assert.Equal(t, b{a: a{A: 1}}, merge.MustMerge(s1, s2,
+		merge.WithStructStrategy(merge.StructStrategyReplaceStruct),
+	).(b))
 
-	// assert.Equal(t, b{B: 0, a: a{A: 1}}, merge.MustMerge(s1, s2,
-	// 	merge.WithStructStrategy(merge.StructStrategyReplaceFields),
-	// ).(b))
+	assert.Equal(t, b{B: 0, a: a{A: 1}}, merge.MustMerge(s1, s2,
+		merge.WithStructStrategy(merge.StructStrategyReplaceFields),
+	).(b))
 
-	// assert.Equal(t, b{B: 1, a: a{A: 1}}, merge.MustMerge(s1, s2,
-	// 	merge.WithStructStrategy(merge.StructStrategyReplaceFields),
-	// 	merge.WithCondition(merge.ConditionSrcIsNotZero),
-	// ).(b))
+	assert.Equal(t, b{B: 1, a: a{A: 1}}, merge.MustMerge(s1, s2,
+		merge.WithStructStrategy(merge.StructStrategyReplaceFields),
+		merge.WithCondition(merge.ConditionSrcIsNotZero),
+	).(b))
 
-	// assert.Equal(t, b{B: 1, a: a{A: 1}}, merge.MustMerge(s1, s2,
-	// 	merge.WithStructStrategy(merge.StructStrategyReplaceDeep),
-	// 	merge.WithCondition(merge.ConditionSrcIsNotZero),
-	// ).(b))
+	assert.Equal(t, b{B: 1, a: a{A: 1}}, merge.MustMerge(s1, s2,
+		merge.WithStructStrategy(merge.StructStrategyReplaceDeep),
+		merge.WithCondition(merge.ConditionSrcIsNotZero),
+	).(b))
 
-	// assert.Equal(t, c{a: &a{A: 1}}, merge.MustMerge(s3, s4,
-	// 	merge.WithStructStrategy(merge.StructStrategyReplaceStruct),
-	// 	merge.WithResolver(merge.ResolverSingle),
-	// ).(c))
+	assert.Equal(t, c{a: &a{A: 1}}, merge.MustMerge(s3, s4,
+		merge.WithStructStrategy(merge.StructStrategyReplaceStruct),
+		merge.WithStructResolver(merge.ResolverSingle),
+	).(c))
 
-	// assert.Equal(t, c{C: 1, a: &a{A: 1}}, merge.MustMerge(s3, s4,
-	// 	merge.WithStructStrategy(merge.StructStrategyReplaceFields),
-	// 	merge.WithResolver(merge.ResolverSingle),
-	// 	merge.WithCondition(merge.ConditionSrcIsNotZero),
-	// ).(c))
+	assert.Equal(t, c{C: 1, a: &a{A: 1}}, merge.MustMerge(s3, s4,
+		merge.WithStructStrategy(merge.StructStrategyReplaceFields),
+		merge.WithStructResolver(merge.ResolverSingle),
+		merge.WithCondition(merge.ConditionSrcIsNotZero),
+	).(c))
 
 	assert.Equal(t, c{C: 1, a: &a{A: 1}}, merge.MustMerge(s3, s4,
 		merge.WithStructStrategy(merge.StructStrategyReplaceDeep),
@@ -207,4 +211,48 @@ func TestStruct(t *testing.T) {
 		merge.WithStructResolver(merge.ResolverBoth),
 		merge.WithCondition(merge.ConditionSrcIsNotZero),
 	).(c))
+}
+
+func TestArray(t *testing.T) {
+	type (
+		a2    = [2]int
+		a2a2  = [2][2]int
+		a2pa2 = [2]*[2]int
+	)
+	var (
+		a = a2{1, 2}
+		b = a2{3, 4}
+		c = a2a2{{6, 7}, {8, 9}}
+		d = a2a2{{10, 11}}
+		e = a2a2{{12, 13}}
+		f = a2pa2{{15, 16}}
+	)
+
+	assert.Equal(t, a2{1, 2}, merge.MustMerge(a, b,
+		merge.WithArrayStrategy(merge.ArrayStrategyIgnore),
+	).(a2))
+
+	assert.Equal(t, a2{3, 4}, merge.MustMerge(a, b,
+		merge.WithArrayStrategy(merge.ArrayStrategyReplaceArray),
+	).(a2))
+
+	assert.Equal(t, a2a2{{10, 11}}, merge.MustMerge(c, d,
+		merge.WithArrayStrategy(merge.ArrayStrategyReplaceArray),
+	).(a2a2))
+
+	assert.Equal(t, a2a2{{12, 13}, {8, 9}}, merge.MustMerge(c, e,
+		merge.WithArrayStrategy(merge.ArrayStrategyReplaceElements),
+		merge.WithCondition(merge.ConditionSrcIsNotZero),
+	).(a2a2))
+
+	assert.Equal(t, a2a2{{12, 13}, {8, 9}}, merge.MustMerge(c, e,
+		merge.WithArrayStrategy(merge.ArrayStrategyReplaceDeep),
+		merge.WithCondition(merge.ConditionSrcIsNotZero),
+	).(a2a2))
+
+	assert.Equal(t, a2a2{{15, 16}, {8, 9}}, merge.MustMerge(c, f,
+		merge.WithArrayStrategy(merge.ArrayStrategyReplaceDeep),
+		merge.WithArrayResolver(merge.ResolverSingle),
+		merge.WithCondition(merge.ConditionSrcIsNotZero),
+	).(a2pa2))
 }
