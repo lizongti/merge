@@ -254,5 +254,5 @@ func TestArray(t *testing.T) {
 		merge.WithArrayStrategy(merge.ArrayStrategyReplaceDeep),
 		merge.WithArrayResolver(merge.ResolverSingle),
 		merge.WithCondition(merge.ConditionSrcIsNotZero),
-	).(a2pa2))
+	).(a2a2))
 }
