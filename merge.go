@@ -77,8 +77,8 @@ func (m *merger) merge(dst, src reflect.Value, resolver Resolver) (
 		ret, err = m.mergeStruct(dst, src)
 	case reflect.Array:
 		ret, err = m.mergeArray(dst, src)
-	// case reflect.Chan:
-	// 	vRet, err = m.mergeChan(dst, src)
+	case reflect.Chan:
+		ret, err = m.mergeChan(dst, src)
 	default:
 		// Including reflect.Invalid
 		ret, err = m.mergeDefault(dst, src)
@@ -87,7 +87,7 @@ func (m *merger) merge(dst, src reflect.Value, resolver Resolver) (
 	if err != nil {
 		return reflect.Value{}, err
 	}
-	return makePointerInDepth(ret, depth), nil
+	return makeDeepPointer(ret, depth), nil
 }
 
 func (m *merger) mergeDefault(dst, src reflect.Value) (reflect.Value, error) {
@@ -180,9 +180,9 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 			}
 
 			if m.conditions.Check(dstElem, srcElem) {
-				ret = reflect.Append(ret, makePointerInDepth(srcElem, depth))
+				ret.Set(reflect.Append(ret, makeDeepPointer(srcElem, depth)))
 			} else {
-				ret = reflect.Append(ret, makePointerInDepth(dstElem, depth))
+				ret.Set(reflect.Append(ret, makeDeepPointer(dstElem, depth)))
 			}
 		}
 
@@ -208,9 +208,9 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 			}
 
 			if m.conditions.Check(dstElem, srcElem) {
-				ret = reflect.Append(ret, makePointerInDepth(srcElem, depth))
+				ret.Set(reflect.Append(ret, makeDeepPointer(srcElem, depth)))
 			} else {
-				ret = reflect.Append(ret, makePointerInDepth(dstElem, depth))
+				ret.Set(reflect.Append(ret, makeDeepPointer(dstElem, depth)))
 			}
 		}
 
@@ -295,9 +295,9 @@ func (m *merger) mergeArray(dst, src reflect.Value) (reflect.Value, error) {
 			}
 
 			if m.conditions.Check(dstElem, srcElem) {
-				ret.Index(index).Set(makePointerInDepth(srcElem, depth))
+				ret.Index(index).Set(makeDeepPointer(srcElem, depth))
 			} else {
-				ret.Index(index).Set(makePointerInDepth(dstElem, depth))
+				ret.Index(index).Set(makeDeepPointer(dstElem, depth))
 			}
 		}
 
@@ -324,6 +324,95 @@ func (m *merger) mergeArray(dst, src reflect.Value) (reflect.Value, error) {
 	default:
 		return reflect.Value{},
 			fmt.Errorf("%w: %v", ErrInvalidStrategy, m.arrayStrategy)
+	}
+
+	return ret, nil
+}
+
+func (m *merger) mergeChan(dst, src reflect.Value) (reflect.Value, error) {
+	var ret reflect.Value
+
+	switch m.chanStrategy {
+	case ChanStrategyIgnore:
+		ret = makeValue(dst)
+
+	case ChanStrategyRefer:
+		ret = makeValue(src)
+
+	case ChanStrategyAppend:
+		dstSlice := chanToSlice(dst)
+		srcSlice := chanToSlice(src)
+		retSlice := reflect.AppendSlice(dstSlice, srcSlice)
+		ret = sliceToChan(retSlice)
+
+	case ChanStrategyReplace:
+		srcSlice := chanToSlice(src)
+		ret = sliceToChan(srcSlice)
+
+	case ChanStrategyReplaceElements:
+		dstSlice := chanToSlice(dst)
+		srcSlice := chanToSlice(src)
+
+		retSlice := makeZeroValue(dstSlice)
+		for index := 0; index < retSlice.Len(); index++ {
+			var (
+				dstElem, srcElem reflect.Value
+				err              error
+				depth            int
+			)
+			if index < dstSlice.Len() {
+				dstElem = dstSlice.Index(index)
+			}
+			if index < srcSlice.Len() {
+				srcElem = srcSlice.Index(index)
+			}
+
+			dstElem, srcElem, depth, err =
+				resolve(dstElem, srcElem, m.chanResolver)
+			if err != nil {
+				return reflect.Value{}, err
+			}
+
+			if m.conditions.Check(dstElem, srcElem) {
+				retSlice.Set(reflect.Append(retSlice,
+					makeDeepPointer(srcElem, depth)))
+			} else {
+				retSlice.Set(reflect.Append(retSlice,
+					makeDeepPointer(dstElem, depth)))
+			}
+		}
+
+		ret = sliceToChan(retSlice)
+
+	case ChanStrategyReplaceDeep:
+		dstSlice := chanToSlice(dst)
+		srcSlice := chanToSlice(src)
+
+		retSlice := makeZeroValue(dstSlice)
+		for index := 0; index < retSlice.Len(); index++ {
+			var (
+				dstElem, srcElem reflect.Value
+				err              error
+			)
+			if index < dstSlice.Len() {
+				dstElem = dstSlice.Index(index)
+			}
+			if index < srcSlice.Len() {
+				srcElem = srcSlice.Index(index)
+			}
+
+			v, err := m.merge(dstElem, srcElem, m.chanResolver)
+			if err != nil {
+				return reflect.Value{}, err
+			}
+			retSlice.Set(reflect.Append(retSlice, v))
+		}
+
+		ret = sliceToChan(retSlice)
+
+	default:
+		return reflect.Value{},
+			fmt.Errorf("%w: %v", ErrInvalidStrategy, m.chanStrategy)
 	}
 
 	return ret, nil

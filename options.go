@@ -37,10 +37,12 @@ type Options struct {
 	sliceResolver   Resolver
 	structResolver  Resolver
 	arrayResolver   Resolver
+	chanResolver    Resolver
 
 	sliceStrategy  SliceStrategy
 	structStrategy StructStrategy
 	arrayStrategy  ArrayStrategy
+	chanStrategy   ChanStrategy
 }
 
 var optionsDefault = Options{
@@ -49,6 +51,7 @@ var optionsDefault = Options{
 	defaultResolver: ResolverNone,
 	structResolver:  ResolverNone,
 	arrayResolver:   ResolverNone,
+	chanResolver:    ResolverNone,
 
 	sliceStrategy:  SliceStrategyIgnore,
 	structStrategy: StructStrategyIgnore,
@@ -87,6 +90,12 @@ func WithArrayResolver(resolver Resolver) Option {
 	}
 }
 
+func WithChanResolver(resolver Resolver) Option {
+	return func(config *Options) {
+		config.chanResolver = resolver
+	}
+}
+
 func WithCondition(canCover Condition) Option {
 	return func(config *Options) {
 		config.conditions = append(config.conditions, canCover)
@@ -108,5 +117,11 @@ func WithStructStrategy(strategy StructStrategy) Option {
 func WithArrayStrategy(strategy ArrayStrategy) Option {
 	return func(config *Options) {
 		config.arrayStrategy = strategy
+	}
+}
+
+func WithChanStrategy(strategy ChanStrategy) Option {
+	return func(config *Options) {
+		config.chanStrategy = strategy
 	}
 }

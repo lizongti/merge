@@ -76,3 +76,14 @@ func (s ArrayStrategy) String() string {
 	}
 	return fmt.Errorf("%w: %d", ErrInvalidStrategy, s).Error()
 }
+
+type ChanStrategy int
+
+const (
+	ChanStrategyIgnore ChanStrategy = iota
+	ChanStrategyRefer
+	ChanStrategyAppend
+	ChanStrategyReplace
+	ChanStrategyReplaceElements
+	ChanStrategyReplaceDeep
+)

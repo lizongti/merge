@@ -256,3 +256,45 @@ func TestArray(t *testing.T) {
 		merge.WithCondition(merge.ConditionSrcIsNotZero),
 	).(a2a2))
 }
+
+func TestChan(t *testing.T) {
+	type (
+		ci = chan int
+	)
+	var (
+		s2c = func(s []int) ci {
+			c := make(ci, len(s))
+			for i := 0; i < len(s); i++ {
+				c <- s[i]
+			}
+			return c
+		}
+		c2s = func(c ci) []int {
+			s := make([]int, 0, cap(c))
+			for i, n := 0, len(c); i < n; i++ {
+				s = append(s, <-c)
+			}
+			for i := 0; i < len(s); i++ {
+				c <- s[i]
+			}
+			return s
+		}
+
+		s1 = []int{1, 2}
+		s2 = []int{3, 4, 5}
+		c1 = s2c(s1)
+		c2 = s2c(s2)
+	)
+
+	assert.Equal(t, c2s(c1), c2s(merge.MustMerge(c1, c2,
+		merge.WithChanStrategy(merge.ChanStrategyIgnore),
+	).(ci)))
+
+	assert.Equal(t, c2s(c2), c2s(merge.MustMerge(c1, c2,
+		merge.WithChanStrategy(merge.ChanStrategyRefer),
+	).(ci)))
+
+	assert.Equal(t, c2s(c2), c2s(merge.MustMerge(c1, c2,
+		merge.WithChanStrategy(merge.ChanStrategyReplace),
+	).(ci)))
+}

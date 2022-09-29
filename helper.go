@@ -17,7 +17,7 @@ var (
 	ErrInvalidStrategy  = errors.New("invalid strategy")
 )
 
-func makePointerInDepth(v reflect.Value, depth int) reflect.Value {
+func makeDeepPointer(v reflect.Value, depth int) reflect.Value {
 	for i := 0; i < depth; i++ {
 		v = makePointer(v)
 	}
@@ -55,4 +55,27 @@ func setValueToField(field reflect.Value, value reflect.Value) {
 func getValueFromField(field reflect.Value) reflect.Value {
 	unsafePtr := unsafe.Pointer(field.UnsafeAddr())
 	return reflect.NewAt(field.Type(), unsafePtr).Elem()
+}
+
+func chanToSlice(vChan reflect.Value) reflect.Value {
+	vSlice := reflect.MakeSlice(vChan.Type().Elem(), 0, vChan.Len())
+	for i, n := 0, vChan.Len(); i < n; i++ {
+		v, ok := vChan.Recv()
+		if !ok {
+			break
+		}
+		vSlice.Set(reflect.Append(vSlice, v))
+	}
+	for i := 0; i < vSlice.Len(); i++ {
+		vChan.Send(vSlice.Index(i))
+	}
+	return vSlice
+}
+
+func sliceToChan(vSlice reflect.Value) reflect.Value {
+	vChan := reflect.MakeChan(vSlice.Type().Elem(), vSlice.Len())
+	for i := 0; i < vSlice.Len(); i++ {
+		vChan.Send(vSlice.Index(i))
+	}
+	return vChan
 }
