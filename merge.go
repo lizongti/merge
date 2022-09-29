@@ -62,13 +62,13 @@ func (m *merger) merge(dst, src reflect.Value, resolver Resolver) (
 		ret, err = m.mergeSlice(dst, src)
 	case reflect.Struct:
 		ret, err = m.mergeStruct(dst, src)
-	// case reflect.Array:
-	// 	vRet, err = m.mergeArray(dst, src)
+	case reflect.Array:
+		ret, err = m.mergeArray(dst, src)
 	// case reflect.Chan:
 	// 	vRet, err = m.mergeChan(dst, src)
 	default:
 		// Including reflect.Invalid
-		ret, err = m.mergeValue(dst, src)
+		ret, err = m.mergeDefault(dst, src)
 	}
 
 	if err != nil {
@@ -77,7 +77,7 @@ func (m *merger) merge(dst, src reflect.Value, resolver Resolver) (
 	return makePointerInDepth(ret, depth), nil
 }
 
-func (m *merger) mergeValue(dst, src reflect.Value) (reflect.Value, error) {
+func (m *merger) mergeDefault(dst, src reflect.Value) (reflect.Value, error) {
 	return makeValue(src), nil
 }
 
@@ -118,6 +118,10 @@ func (m *merger) mergeStruct(dst, src reflect.Value) (reflect.Value, error) {
 			}
 			setValueToField(ret.Field(i), v)
 		}
+
+	default:
+		return reflect.Value{},
+			fmt.Errorf("%w: %v", ErrInvalidStrategy, m.structStrategy)
 	}
 
 	return ret, nil
@@ -140,7 +144,7 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 	case SliceStrategyReplaceSlice:
 		ret = makeValue(src)
 
-	case SliceStrategyReplaceElements:
+	case SliceStrategyReplaceElementsDynamic:
 		ret = makeZeroValue(dst)
 		max := int(math.Max(float64(dst.Len()), float64(src.Len())))
 		for index := 0; index < max; index++ {
@@ -169,7 +173,35 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 			}
 		}
 
-	case SliceStrategyReplaceDeep:
+	case SliceStrategyReplaceElementsStatic:
+		ret = makeZeroValue(dst)
+		for index := 0; index < dst.Len(); index++ {
+			var (
+				dstElem, srcElem reflect.Value
+				err              error
+				depth            int
+			)
+			if index < dst.Len() {
+				dstElem = dst.Index(index)
+			}
+			if index < src.Len() {
+				srcElem = src.Index(index)
+			}
+
+			dstElem, srcElem, depth, err =
+				resolve(dstElem, srcElem, m.sliceResolver)
+			if err != nil {
+				return reflect.Value{}, err
+			}
+
+			if m.conditions.Check(dstElem, srcElem) {
+				ret = reflect.Append(ret, makePointerInDepth(srcElem, depth))
+			} else {
+				ret = reflect.Append(ret, makePointerInDepth(dstElem, depth))
+			}
+		}
+
+	case SliceStrategyReplaceDeepDynamic:
 		ret = makeZeroValue(dst)
 		max := int(math.Max(float64(dst.Len()), float64(src.Len())))
 		for index := 0; index < max; index++ {
@@ -190,9 +222,145 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 			ret.Set(reflect.Append(ret, v))
 		}
 
+	case SliceStrategyReplaceDeepStatic:
+		ret = makeZeroValue(dst)
+		for index := 0; index < dst.Len(); index++ {
+			var (
+				dstElem, srcElem reflect.Value
+				err              error
+			)
+			if index < dst.Len() {
+				dstElem = dst.Index(index)
+			}
+			if index < src.Len() {
+				srcElem = src.Index(index)
+			}
+			v, err := m.merge(dstElem, srcElem, m.sliceResolver)
+			if err != nil {
+				return reflect.Value{}, err
+			}
+			ret.Set(reflect.Append(ret, v))
+		}
+
 	default:
 		return reflect.Value{},
-			fmt.Errorf("%w: %v", ErrInvalidSliceStrategy, m.sliceStrategy)
+			fmt.Errorf("%w: %v", ErrInvalidStrategy, m.sliceStrategy)
+	}
+
+	return ret, nil
+}
+
+func (m *merger) mergeArray(dst, src reflect.Value) (reflect.Value, error) {
+	var ret reflect.Value
+
+	switch m.arrayStrategy {
+	case ArrayStrategyIgnore:
+		ret = makeValue(dst)
+
+	case ArrayStrategyReplaceArray:
+		ret = makeValue(src)
+
+	case ArrayStrategyReplaceElementsDynamic:
+		ret = makeZeroValue(dst)
+		max := int(math.Max(float64(dst.Len()), float64(src.Len())))
+		for index := 0; index < max; index++ {
+			var (
+				dstElem, srcElem reflect.Value
+				err              error
+				depth            int
+			)
+			if index < dst.Len() {
+				dstElem = dst.Index(index)
+			}
+			if index < src.Len() {
+				srcElem = src.Index(index)
+			}
+
+			dstElem, srcElem, depth, err =
+				resolve(dstElem, srcElem, m.arrayResolver)
+			if err != nil {
+				return reflect.Value{}, err
+			}
+
+			if m.conditions.Check(dstElem, srcElem) {
+				ret.Index(index).Set(makePointerInDepth(srcElem, depth))
+			} else {
+				ret.Index(index).Set(makePointerInDepth(dstElem, depth))
+			}
+		}
+
+	case ArrayStrategyReplaceElementsStatic:
+		ret = makeZeroValue(dst)
+		for index := 0; index < dst.Len(); index++ {
+			var (
+				dstElem, srcElem reflect.Value
+				err              error
+				depth            int
+			)
+			if index < dst.Len() {
+				dstElem = dst.Index(index)
+			}
+			if index < src.Len() {
+				srcElem = src.Index(index)
+			}
+
+			dstElem, srcElem, depth, err =
+				resolve(dstElem, srcElem, m.arrayResolver)
+			if err != nil {
+				return reflect.Value{}, err
+			}
+
+			if m.conditions.Check(dstElem, srcElem) {
+				ret.Index(index).Set(makePointerInDepth(srcElem, depth))
+			} else {
+				ret.Index(index).Set(makePointerInDepth(dstElem, depth))
+			}
+		}
+
+	case ArrayStrategyReplaceDeepDynamic:
+		ret = makeZeroValue(dst)
+		max := int(math.Max(float64(dst.Len()), float64(src.Len())))
+		for index := 0; index < max; index++ {
+			var (
+				dstElem, srcElem reflect.Value
+				err              error
+			)
+			if index < dst.Len() {
+				dstElem = dst.Index(index)
+			}
+			if index < src.Len() {
+				srcElem = src.Index(index)
+			}
+			v, err := m.merge(dstElem, srcElem, m.arrayResolver)
+			if err != nil {
+				return reflect.Value{}, err
+			}
+			ret.Index(index).Set(v)
+		}
+
+	case ArrayStrategyReplaceDeepStatic:
+		ret = makeZeroValue(dst)
+		for index := 0; index < dst.Len(); index++ {
+			var (
+				dstElem, srcElem reflect.Value
+				err              error
+			)
+			if index < dst.Len() {
+				dstElem = dst.Index(index)
+			}
+			if index < src.Len() {
+				srcElem = src.Index(index)
+			}
+			v, err := m.merge(dstElem, srcElem, m.arrayResolver)
+			if err != nil {
+				return reflect.Value{}, err
+			}
+			ret.Index(index).Set(v)
+		}
+
+	default:
+		return reflect.Value{},
+			fmt.Errorf("%w: %v", ErrInvalidStrategy, m.arrayStrategy)
 	}
 
 	return ret, nil

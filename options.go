@@ -36,17 +36,23 @@ type Options struct {
 	defaultResolver Resolver
 	sliceResolver   Resolver
 	structResolver  Resolver
+	arrayResolver   Resolver
 
 	sliceStrategy  SliceStrategy
 	structStrategy StructStrategy
+	arrayStrategy  ArrayStrategy
 }
 
 var optionsDefault = Options{
+	conditions: newConditions(),
+
 	defaultResolver: ResolverNone,
 	structResolver:  ResolverNone,
-	conditions:      newConditions(),
-	sliceStrategy:   SliceStrategyIgnore,
-	structStrategy:  StructStrategyIgnore,
+	arrayResolver:   ResolverNone,
+
+	sliceStrategy:  SliceStrategyIgnore,
+	structStrategy: StructStrategyIgnore,
+	arrayStrategy:  ArrayStrategyIgnore,
 }
 
 func newOptions(opts []Option) *Options {

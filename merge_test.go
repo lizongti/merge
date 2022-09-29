@@ -91,11 +91,11 @@ func TestSlice(t *testing.T) {
 	).(s))
 
 	assert.Equal(t, s{4, 5, 3}, merge.MustMerge(a, b,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceElements),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceElementsDynamic),
 	).(s))
 
 	assert.Equal(t, s{4, 5, 3}, merge.MustMerge(a, b,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceDeep),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceDeepDynamic),
 	).(s))
 
 	assert.Equal(t, ss{{6, 7}, {8, 9}, {10, 11}}, merge.MustMerge(c, d,
@@ -107,36 +107,44 @@ func TestSlice(t *testing.T) {
 	).(ss))
 
 	assert.Equal(t, ss{{10, 11}, {8, 9}}, merge.MustMerge(c, d,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceElements),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceElementsDynamic),
 	).(ss))
 
 	assert.Equal(t, ss{{10, 11}, {8, 9}}, merge.MustMerge(c, d,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceDeep),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceDeepDynamic),
 	).(ss))
 
 	assert.Equal(t, ss{{12, 13, 14}, {8, 9}}, merge.MustMerge(c, e,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceElements),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceElementsDynamic),
 	).(ss))
 
 	assert.Equal(t, ss{{12, 13, 14}, {8, 9}}, merge.MustMerge(c, e,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceDeep),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceDeepDynamic),
+	).(ss))
+
+	assert.Equal(t, ss{{12, 13, 14}, {8, 9}}, merge.MustMerge(c, e,
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceElementsStatic),
+	).(ss))
+
+	assert.Equal(t, ss{{12, 13}, {8, 9}}, merge.MustMerge(c, e,
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceDeepStatic),
 	).(ss))
 
 	assert.Equal(t, ss{{15}, {8, 9}}, merge.MustMerge(c, f,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceElements),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceElementsDynamic),
 	).(ss))
 
 	assert.Equal(t, ss{{15, 7}, {8, 9}}, merge.MustMerge(c, f,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceDeep),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceDeepDynamic),
 	).(ss))
 
 	assert.Equal(t, ss{{15}, {8, 9}}, merge.MustMerge(c, g,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceElements),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceElementsDynamic),
 		merge.WithSliceResolver(merge.ResolverSingle),
 	).(ss))
 
 	assert.Equal(t, ss{{15, 7}, {8, 9}}, merge.MustMerge(c, g,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceDeep),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceDeepDynamic),
 		merge.WithSliceResolver(merge.ResolverSingle),
 	).(ss))
 }
