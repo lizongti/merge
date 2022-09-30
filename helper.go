@@ -58,13 +58,14 @@ func getValueFromField(field reflect.Value) reflect.Value {
 }
 
 func chanToSlice(vChan reflect.Value) reflect.Value {
-	vSlice := reflect.MakeSlice(vChan.Type().Elem(), 0, vChan.Len())
+	vSlice := reflect.MakeSlice(
+		reflect.SliceOf(vChan.Type().Elem()), 0, vChan.Len())
 	for i, n := 0, vChan.Len(); i < n; i++ {
 		v, ok := vChan.Recv()
 		if !ok {
 			break
 		}
-		vSlice.Set(reflect.Append(vSlice, v))
+		vSlice = reflect.Append(vSlice, v)
 	}
 	for i := 0; i < vSlice.Len(); i++ {
 		vChan.Send(vSlice.Index(i))
@@ -73,7 +74,8 @@ func chanToSlice(vChan reflect.Value) reflect.Value {
 }
 
 func sliceToChan(vSlice reflect.Value) reflect.Value {
-	vChan := reflect.MakeChan(vSlice.Type().Elem(), vSlice.Len())
+	vChan := reflect.MakeChan(
+		reflect.ChanOf(reflect.BothDir, vSlice.Type().Elem()), vSlice.Len())
 	for i := 0; i < vSlice.Len(); i++ {
 		vChan.Send(vSlice.Index(i))
 	}

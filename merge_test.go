@@ -282,8 +282,10 @@ func TestChan(t *testing.T) {
 
 		s1 = []int{1, 2}
 		s2 = []int{3, 4, 5}
+		s3 = []int{1, 2, 3, 4, 5}
 		c1 = s2c(s1)
 		c2 = s2c(s2)
+		c3 = s2c(s3)
 	)
 
 	assert.Equal(t, c2s(c1), c2s(merge.MustMerge(c1, c2,
@@ -296,5 +298,13 @@ func TestChan(t *testing.T) {
 
 	assert.Equal(t, c2s(c2), c2s(merge.MustMerge(c1, c2,
 		merge.WithChanStrategy(merge.ChanStrategyReplace),
+	).(ci)))
+
+	assert.Equal(t, []int{3, 4, 5, 4, 5}, c2s(merge.MustMerge(c3, c2,
+		merge.WithChanStrategy(merge.ChanStrategyReplaceElements),
+	).(ci)))
+
+	assert.Equal(t, []int{3, 4, 5, 4, 5}, c2s(merge.MustMerge(c3, c2,
+		merge.WithChanStrategy(merge.ChanStrategyReplaceDeep),
 	).(ci)))
 }

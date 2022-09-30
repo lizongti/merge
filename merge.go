@@ -180,9 +180,9 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 			}
 
 			if m.conditions.Check(dstElem, srcElem) {
-				ret.Set(reflect.Append(ret, makeDeepPointer(srcElem, depth)))
+				ret = reflect.Append(ret, makeDeepPointer(srcElem, depth))
 			} else {
-				ret.Set(reflect.Append(ret, makeDeepPointer(dstElem, depth)))
+				ret = reflect.Append(ret, makeDeepPointer(dstElem, depth))
 			}
 		}
 
@@ -208,9 +208,9 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 			}
 
 			if m.conditions.Check(dstElem, srcElem) {
-				ret.Set(reflect.Append(ret, makeDeepPointer(srcElem, depth)))
+				ret = reflect.Append(ret, makeDeepPointer(srcElem, depth))
 			} else {
-				ret.Set(reflect.Append(ret, makeDeepPointer(dstElem, depth)))
+				ret = reflect.Append(ret, makeDeepPointer(dstElem, depth))
 			}
 		}
 
@@ -232,7 +232,7 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 			if err != nil {
 				return reflect.Value{}, err
 			}
-			ret.Set(reflect.Append(ret, v))
+			ret = reflect.Append(ret, v)
 		}
 
 	case SliceStrategyReplaceDeepStatic:
@@ -252,7 +252,7 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 			if err != nil {
 				return reflect.Value{}, err
 			}
-			ret.Set(reflect.Append(ret, v))
+			ret = reflect.Append(ret, v)
 		}
 
 	default:
@@ -353,8 +353,8 @@ func (m *merger) mergeChan(dst, src reflect.Value) (reflect.Value, error) {
 		dstSlice := chanToSlice(dst)
 		srcSlice := chanToSlice(src)
 
-		retSlice := makeZeroValue(dstSlice)
-		for index := 0; index < retSlice.Len(); index++ {
+		var retSlice = makeZeroValue(dstSlice)
+		for index := 0; index < dstSlice.Len(); index++ {
 			var (
 				dstElem, srcElem reflect.Value
 				err              error
@@ -374,11 +374,11 @@ func (m *merger) mergeChan(dst, src reflect.Value) (reflect.Value, error) {
 			}
 
 			if m.conditions.Check(dstElem, srcElem) {
-				retSlice.Set(reflect.Append(retSlice,
-					makeDeepPointer(srcElem, depth)))
+				retSlice = reflect.Append(retSlice,
+					makeDeepPointer(srcElem, depth))
 			} else {
-				retSlice.Set(reflect.Append(retSlice,
-					makeDeepPointer(dstElem, depth)))
+				retSlice = reflect.Append(retSlice,
+					makeDeepPointer(dstElem, depth))
 			}
 		}
 
@@ -389,7 +389,7 @@ func (m *merger) mergeChan(dst, src reflect.Value) (reflect.Value, error) {
 		srcSlice := chanToSlice(src)
 
 		retSlice := makeZeroValue(dstSlice)
-		for index := 0; index < retSlice.Len(); index++ {
+		for index := 0; index < dstSlice.Len(); index++ {
 			var (
 				dstElem, srcElem reflect.Value
 				err              error
@@ -405,7 +405,7 @@ func (m *merger) mergeChan(dst, src reflect.Value) (reflect.Value, error) {
 			if err != nil {
 				return reflect.Value{}, err
 			}
-			retSlice.Set(reflect.Append(retSlice, v))
+			retSlice = reflect.Append(retSlice, v)
 		}
 
 		ret = sliceToChan(retSlice)
