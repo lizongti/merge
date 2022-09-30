@@ -170,6 +170,7 @@ func (m *merger) mergeStruct(dst, src reflect.Value) (reflect.Value, error) {
 		src = makeCopiedValue(src)
 		dst = makeCopiedValue(dst)
 		ret = makeZeroValue(dst)
+
 		for index, length := 0, dst.NumField(); index < length; index++ {
 			dstValue := getValueFromField(dst.Field(index))
 			srcValue := getValueFromField(src.Field(index))
@@ -180,10 +181,31 @@ func (m *merger) mergeStruct(dst, src reflect.Value) (reflect.Value, error) {
 			}
 		}
 
+	case StructStrategyReplaceElemExported:
+		src = makeCopiedValue(src)
+		dst = makeCopiedValue(dst)
+		ret = makeZeroValue(dst)
+
+		for index, length := 0, dst.NumField(); index < length; index++ {
+			if isExported(dst, index) {
+				dstValue := getValueFromField(dst.Field(index))
+				srcValue := getValueFromField(src.Field(index))
+				if m.conditions.Check(dstValue, srcValue) {
+					setValueToField(ret.Field(index), srcValue)
+				} else {
+					setValueToField(ret.Field(index), dstValue)
+				}
+			} else {
+				dstValue := getValueFromField(dst.Field(index))
+				setValueToField(ret.Field(index), dstValue)
+			}
+		}
+
 	case StructStrategyReplaceDeep:
 		src = makeCopiedValue(src)
 		dst = makeCopiedValue(dst)
 		ret = makeZeroValue(dst)
+
 		for index, length := 0, dst.NumField(); index < length; index++ {
 			dstValue := getValueFromField(dst.Field(index))
 			srcValue := getValueFromField(src.Field(index))
@@ -192,6 +214,26 @@ func (m *merger) mergeStruct(dst, src reflect.Value) (reflect.Value, error) {
 				return reflect.Value{}, err
 			}
 			setValueToField(ret.Field(index), v)
+		}
+
+	case StructStrategyReplaceDeepExported:
+		src = makeCopiedValue(src)
+		dst = makeCopiedValue(dst)
+		ret = makeZeroValue(dst)
+
+		for index, length := 0, dst.NumField(); index < length; index++ {
+			if isExported(dst, index) {
+				dstValue := getValueFromField(dst.Field(index))
+				srcValue := getValueFromField(src.Field(index))
+				v, err := m.merge(dstValue, srcValue, m.structResolver)
+				if err != nil {
+					return reflect.Value{}, err
+				}
+				setValueToField(ret.Field(index), v)
+			} else {
+				dstValue := getValueFromField(dst.Field(index))
+				setValueToField(ret.Field(index), dstValue)
+			}
 		}
 
 	default:

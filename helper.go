@@ -6,6 +6,10 @@ import (
 	"unsafe"
 )
 
+func isExported(v reflect.Value, index int) bool {
+	return v.Type().Field(index).PkgPath == ""
+}
+
 func makeDeepPointer(v reflect.Value, depth int) reflect.Value {
 	for index := 0; index < depth; index++ {
 		v = makePointer(v)

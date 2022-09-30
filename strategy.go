@@ -31,14 +31,18 @@ const (
 	StructStrategyIgnore StructStrategy = iota
 	StructStrategyReplace
 	StructStrategyReplaceElem
+	StructStrategyReplaceElemExported
 	StructStrategyReplaceDeep
+	StructStrategyReplaceDeepExported
 )
 
 var structStrategyNames = map[StructStrategy]string{
-	StructStrategyIgnore:      "Ignore",
-	StructStrategyReplace:     "Replace",
-	StructStrategyReplaceElem: "ReplaceElem",
-	StructStrategyReplaceDeep: "ReplaceDeep",
+	StructStrategyIgnore:              "Ignore",
+	StructStrategyReplace:             "Replace",
+	StructStrategyReplaceElem:         "ReplaceElem",
+	StructStrategyReplaceElemExported: "ReplaceElemExported",
+	StructStrategyReplaceDeep:         "ReplaceDeep",
+	StructStrategyReplaceDeepExported: "ReplaceDeepExported",
 }
 
 func (s StructStrategy) String() string {

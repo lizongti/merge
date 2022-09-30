@@ -198,6 +198,14 @@ func TestStruct(t *testing.T) {
 		merge.WithCondition(merge.ConditionSrcIsNotZero),
 	).(b))
 
+	assert.Equal(t, b{B: 1, a: a{A: 1}}, merge.MustMerge(s2, s1,
+		merge.WithStructStrategy(merge.StructStrategyReplaceElemExported),
+	).(b))
+
+	assert.Equal(t, b{B: 1, a: a{A: 1}}, merge.MustMerge(s2, s1,
+		merge.WithStructStrategy(merge.StructStrategyReplaceDeepExported),
+	).(b))
+
 	assert.Equal(t, c{a: &a{A: 1}}, merge.MustMerge(s3, s4,
 		merge.WithStructStrategy(merge.StructStrategyReplace),
 		merge.WithStructResolver(merge.ResolverSingle),
