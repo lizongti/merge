@@ -9,21 +9,21 @@ const (
 	SliceStrategyAppend
 	SliceStrategyRefer
 	SliceStrategyReplace
-	SliceStrategyReplaceElementsDynamic
-	SliceStrategyReplaceElementsStatic
+	SliceStrategyReplaceElemDynamic
+	SliceStrategyReplaceElem
 	SliceStrategyReplaceDeepDynamic
-	SliceStrategyReplaceDeepStatic
+	SliceStrategyReplaceDeep
 )
 
 var sliceStrategyNames = map[SliceStrategy]string{
-	SliceStrategyIgnore:                 "Ignore",
-	SliceStrategyAppend:                 "Append",
-	SliceStrategyRefer:                  "Refer",
-	SliceStrategyReplace:                "Replace",
-	SliceStrategyReplaceElementsDynamic: "ReplaceElementsDynamic",
-	SliceStrategyReplaceElementsStatic:  "ReplaceElementsStatic",
-	SliceStrategyReplaceDeepDynamic:     "ReplaceDeepDynamic",
-	SliceStrategyReplaceDeepStatic:      "ReplaceDeepStatic",
+	SliceStrategyIgnore:             "Ignore",
+	SliceStrategyAppend:             "Append",
+	SliceStrategyRefer:              "Refer",
+	SliceStrategyReplace:            "Replace",
+	SliceStrategyReplaceElemDynamic: "ReplaceElemDynamic",
+	SliceStrategyReplaceElem:        "ReplaceElem",
+	SliceStrategyReplaceDeepDynamic: "ReplaceDeepDynamic",
+	SliceStrategyReplaceDeep:        "ReplaceDeep",
 }
 
 func (s SliceStrategy) String() string {
@@ -38,15 +38,15 @@ type StructStrategy int
 const (
 	StructStrategyIgnore StructStrategy = iota
 	StructStrategyReplace
-	StructStrategyReplaceFields
+	StructStrategyReplaceElem
 	StructStrategyReplaceDeep
 )
 
 var structStrategyNames = map[StructStrategy]string{
-	StructStrategyIgnore:        "Ignore",
-	StructStrategyReplace:       "Replace",
-	StructStrategyReplaceFields: "ReplaceFields",
-	StructStrategyReplaceDeep:   "ReplaceDeep",
+	StructStrategyIgnore:      "Ignore",
+	StructStrategyReplace:     "Replace",
+	StructStrategyReplaceElem: "ReplaceElem",
+	StructStrategyReplaceDeep: "ReplaceDeep",
 }
 
 func (s StructStrategy) String() string {
@@ -61,15 +61,15 @@ type ArrayStrategy int
 const (
 	ArrayStrategyIgnore ArrayStrategy = iota
 	ArrayStrategyReplace
-	ArrayStrategyReplaceElements
+	ArrayStrategyReplaceElem
 	ArrayStrategyReplaceDeep
 )
 
 var arrayStrategyNames = map[ArrayStrategy]string{
-	ArrayStrategyIgnore:          "Ignore",
-	ArrayStrategyReplace:         "Replace",
-	ArrayStrategyReplaceElements: "ReplaceElementsStatic",
-	ArrayStrategyReplaceDeep:     "ReplaceDeepStatic",
+	ArrayStrategyIgnore:      "Ignore",
+	ArrayStrategyReplace:     "Replace",
+	ArrayStrategyReplaceElem: "ReplaceElem",
+	ArrayStrategyReplaceDeep: "ReplaceDeep",
 }
 
 func (s ArrayStrategy) String() string {
@@ -86,15 +86,37 @@ const (
 	ChanStrategyRefer
 	ChanStrategyAppend
 	ChanStrategyReplace
-	ChanStrategyReplaceElements
+	ChanStrategyReplaceElemDynamic
+	ChanStrategyReplaceElem
+	ChanStrategyReplaceDeepDynamic
 	ChanStrategyReplaceDeep
 )
 
 var chanStrategyNames = map[ChanStrategy]string{
-	ChanStrategyIgnore:          "Ignore",
-	ChanStrategyAppend:          "Append",
-	ChanStrategyRefer:           "Refer",
-	ChanStrategyReplace:         "Replace",
-	ChanStrategyReplaceElements: "ReplaceElements",
-	ChanStrategyReplaceDeep:     "ReplaceDeep",
+	ChanStrategyIgnore:             "Ignore",
+	ChanStrategyAppend:             "Append",
+	ChanStrategyRefer:              "Refer",
+	ChanStrategyReplace:            "Replace",
+	ChanStrategyReplaceElemDynamic: "ReplaceElemDynamic",
+	ChanStrategyReplaceElem:        "ReplaceElem",
+	ChanStrategyReplaceDeepDynamic: "ReplaceDeepDynamic",
+	ChanStrategyReplaceDeep:        "ReplaceDeep",
+}
+
+type MapStrategy int
+
+const (
+	MapStrategyIgnore MapStrategy = iota
+	MapStrategyRefer
+	MapStrategyReplace
+	MapStrategyReplaceElem
+	MapStrategyReplaceDeep
+)
+
+var mapStrategyNames = map[MapStrategy]string{
+	MapStrategyIgnore:      "Ignore",
+	MapStrategyRefer:       "Refer",
+	MapStrategyReplace:     "Replace",
+	MapStrategyReplaceElem: "ReplaceElements",
+	MapStrategyReplaceDeep: "ReplaceDeep",
 }

@@ -97,7 +97,7 @@ func TestSlice(t *testing.T) {
 	).(s))
 
 	assert.Equal(t, s{4, 5, 3}, merge.MustMerge(a, b,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceElementsDynamic),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceElemDynamic),
 	).(s))
 
 	assert.Equal(t, s{4, 5, 3}, merge.MustMerge(a, b,
@@ -113,7 +113,7 @@ func TestSlice(t *testing.T) {
 	).(ss))
 
 	assert.Equal(t, ss{{10, 11}, {8, 9}}, merge.MustMerge(c, d,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceElementsDynamic),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceElemDynamic),
 	).(ss))
 
 	assert.Equal(t, ss{{10, 11}, {8, 9}}, merge.MustMerge(c, d,
@@ -121,7 +121,7 @@ func TestSlice(t *testing.T) {
 	).(ss))
 
 	assert.Equal(t, ss{{12, 13, 14}, {8, 9}}, merge.MustMerge(c, e,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceElementsDynamic),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceElemDynamic),
 	).(ss))
 
 	assert.Equal(t, ss{{12, 13, 14}, {8, 9}}, merge.MustMerge(c, e,
@@ -129,15 +129,15 @@ func TestSlice(t *testing.T) {
 	).(ss))
 
 	assert.Equal(t, ss{{12, 13, 14}, {8, 9}}, merge.MustMerge(c, e,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceElementsStatic),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceElem),
 	).(ss))
 
 	assert.Equal(t, ss{{12, 13}, {8, 9}}, merge.MustMerge(c, e,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceDeepStatic),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceDeep),
 	).(ss))
 
 	assert.Equal(t, ss{{15}, {8, 9}}, merge.MustMerge(c, f,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceElementsDynamic),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceElemDynamic),
 	).(ss))
 
 	assert.Equal(t, ss{{15, 7}, {8, 9}}, merge.MustMerge(c, f,
@@ -145,7 +145,7 @@ func TestSlice(t *testing.T) {
 	).(ss))
 
 	assert.Equal(t, ss{{15}, {8, 9}}, merge.MustMerge(c, g,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceElementsDynamic),
+		merge.WithSliceStrategy(merge.SliceStrategyReplaceElemDynamic),
 		merge.WithSliceResolver(merge.ResolverSingle),
 	).(ss))
 
@@ -185,11 +185,11 @@ func TestStruct(t *testing.T) {
 	).(b))
 
 	assert.Equal(t, b{B: 0, a: a{A: 1}}, merge.MustMerge(s1, s2,
-		merge.WithStructStrategy(merge.StructStrategyReplaceFields),
+		merge.WithStructStrategy(merge.StructStrategyReplaceElem),
 	).(b))
 
 	assert.Equal(t, b{B: 1, a: a{A: 1}}, merge.MustMerge(s1, s2,
-		merge.WithStructStrategy(merge.StructStrategyReplaceFields),
+		merge.WithStructStrategy(merge.StructStrategyReplaceElem),
 		merge.WithCondition(merge.ConditionSrcIsNotZero),
 	).(b))
 
@@ -204,7 +204,7 @@ func TestStruct(t *testing.T) {
 	).(c))
 
 	assert.Equal(t, c{C: 1, a: &a{A: 1}}, merge.MustMerge(s3, s4,
-		merge.WithStructStrategy(merge.StructStrategyReplaceFields),
+		merge.WithStructStrategy(merge.StructStrategyReplaceElem),
 		merge.WithStructResolver(merge.ResolverSingle),
 		merge.WithCondition(merge.ConditionSrcIsNotZero),
 	).(c))
@@ -245,7 +245,7 @@ func TestArray(t *testing.T) {
 	).(a2a2))
 
 	assert.Equal(t, a2a2{{12, 13}, {8, 9}}, merge.MustMerge(c, e,
-		merge.WithArrayStrategy(merge.ArrayStrategyReplaceElements),
+		merge.WithArrayStrategy(merge.ArrayStrategyReplaceElem),
 		merge.WithCondition(merge.ConditionSrcIsNotZero),
 	).(a2a2))
 
@@ -268,18 +268,18 @@ func TestChan(t *testing.T) {
 	var (
 		s2c = func(s []int) ci {
 			c := make(ci, len(s))
-			for i := 0; i < len(s); i++ {
-				c <- s[i]
+			for index, length := 0, len(s); index < length; index++ {
+				c <- s[index]
 			}
 			return c
 		}
 		c2s = func(c ci) []int {
 			s := make([]int, 0, cap(c))
-			for i, n := 0, len(c); i < n; i++ {
+			for index, length := 0, len(c); index < length; index++ {
 				s = append(s, <-c)
 			}
-			for i := 0; i < len(s); i++ {
-				c <- s[i]
+			for index, length := 0, len(c); index < length; index++ {
+				c <- s[index]
 			}
 			return s
 		}
@@ -305,10 +305,10 @@ func TestChan(t *testing.T) {
 	).(ci)))
 
 	assert.Equal(t, []int{3, 4, 5, 4, 5}, c2s(merge.MustMerge(c3, c2,
-		merge.WithChanStrategy(merge.ChanStrategyReplaceElements),
+		merge.WithChanStrategy(merge.ChanStrategyReplaceElemDynamic),
 	).(ci)))
 
 	assert.Equal(t, []int{3, 4, 5, 4, 5}, c2s(merge.MustMerge(c3, c2,
-		merge.WithChanStrategy(merge.ChanStrategyReplaceDeep),
+		merge.WithChanStrategy(merge.ChanStrategyReplaceDeepDynamic),
 	).(ci)))
 }
