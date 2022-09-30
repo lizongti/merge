@@ -89,7 +89,11 @@ func TestSlice(t *testing.T) {
 	).(s))
 
 	assert.Equal(t, s{4, 5}, merge.MustMerge(a, b,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceSlice),
+		merge.WithSliceStrategy(merge.SliceStrategyReplace),
+	).(s))
+
+	assert.Equal(t, s{4, 5}, merge.MustMerge(a, b,
+		merge.WithSliceStrategy(merge.SliceStrategyRefer),
 	).(s))
 
 	assert.Equal(t, s{4, 5, 3}, merge.MustMerge(a, b,
@@ -105,7 +109,7 @@ func TestSlice(t *testing.T) {
 	).(ss))
 
 	assert.Equal(t, ss{{10, 11}}, merge.MustMerge(c, d,
-		merge.WithSliceStrategy(merge.SliceStrategyReplaceSlice),
+		merge.WithSliceStrategy(merge.SliceStrategyReplace),
 	).(ss))
 
 	assert.Equal(t, ss{{10, 11}, {8, 9}}, merge.MustMerge(c, d,
@@ -177,7 +181,7 @@ func TestStruct(t *testing.T) {
 	).(b))
 
 	assert.Equal(t, b{a: a{A: 1}}, merge.MustMerge(s1, s2,
-		merge.WithStructStrategy(merge.StructStrategyReplaceStruct),
+		merge.WithStructStrategy(merge.StructStrategyReplace),
 	).(b))
 
 	assert.Equal(t, b{B: 0, a: a{A: 1}}, merge.MustMerge(s1, s2,
@@ -195,7 +199,7 @@ func TestStruct(t *testing.T) {
 	).(b))
 
 	assert.Equal(t, c{a: &a{A: 1}}, merge.MustMerge(s3, s4,
-		merge.WithStructStrategy(merge.StructStrategyReplaceStruct),
+		merge.WithStructStrategy(merge.StructStrategyReplace),
 		merge.WithStructResolver(merge.ResolverSingle),
 	).(c))
 
@@ -233,11 +237,11 @@ func TestArray(t *testing.T) {
 	).(a2))
 
 	assert.Equal(t, a2{3, 4}, merge.MustMerge(a, b,
-		merge.WithArrayStrategy(merge.ArrayStrategyReplaceArray),
+		merge.WithArrayStrategy(merge.ArrayStrategyReplace),
 	).(a2))
 
 	assert.Equal(t, a2a2{{10, 11}}, merge.MustMerge(c, d,
-		merge.WithArrayStrategy(merge.ArrayStrategyReplaceArray),
+		merge.WithArrayStrategy(merge.ArrayStrategyReplace),
 	).(a2a2))
 
 	assert.Equal(t, a2a2{{12, 13}, {8, 9}}, merge.MustMerge(c, e,

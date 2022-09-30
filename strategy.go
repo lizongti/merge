@@ -7,7 +7,8 @@ type SliceStrategy int
 const (
 	SliceStrategyIgnore SliceStrategy = iota
 	SliceStrategyAppend
-	SliceStrategyReplaceSlice
+	SliceStrategyRefer
+	SliceStrategyReplace
 	SliceStrategyReplaceElementsDynamic
 	SliceStrategyReplaceElementsStatic
 	SliceStrategyReplaceDeepDynamic
@@ -17,7 +18,8 @@ const (
 var sliceStrategyNames = map[SliceStrategy]string{
 	SliceStrategyIgnore:                 "Ignore",
 	SliceStrategyAppend:                 "Append",
-	SliceStrategyReplaceSlice:           "ReplaceSlice",
+	SliceStrategyRefer:                  "Refer",
+	SliceStrategyReplace:                "Replace",
 	SliceStrategyReplaceElementsDynamic: "ReplaceElementsDynamic",
 	SliceStrategyReplaceElementsStatic:  "ReplaceElementsStatic",
 	SliceStrategyReplaceDeepDynamic:     "ReplaceDeepDynamic",
@@ -35,14 +37,14 @@ type StructStrategy int
 
 const (
 	StructStrategyIgnore StructStrategy = iota
-	StructStrategyReplaceStruct
+	StructStrategyReplace
 	StructStrategyReplaceFields
 	StructStrategyReplaceDeep
 )
 
 var structStrategyNames = map[StructStrategy]string{
 	StructStrategyIgnore:        "Ignore",
-	StructStrategyReplaceStruct: "ReplaceStruct",
+	StructStrategyReplace:       "Replace",
 	StructStrategyReplaceFields: "ReplaceFields",
 	StructStrategyReplaceDeep:   "ReplaceDeep",
 }
@@ -58,14 +60,14 @@ type ArrayStrategy int
 
 const (
 	ArrayStrategyIgnore ArrayStrategy = iota
-	ArrayStrategyReplaceArray
+	ArrayStrategyReplace
 	ArrayStrategyReplaceElements
 	ArrayStrategyReplaceDeep
 )
 
 var arrayStrategyNames = map[ArrayStrategy]string{
 	ArrayStrategyIgnore:          "Ignore",
-	ArrayStrategyReplaceArray:    "ReplaceArray",
+	ArrayStrategyReplace:         "Replace",
 	ArrayStrategyReplaceElements: "ReplaceElementsStatic",
 	ArrayStrategyReplaceDeep:     "ReplaceDeepStatic",
 }
@@ -87,3 +89,12 @@ const (
 	ChanStrategyReplaceElements
 	ChanStrategyReplaceDeep
 )
+
+var chanStrategyNames = map[ChanStrategy]string{
+	ChanStrategyIgnore:          "Ignore",
+	ChanStrategyAppend:          "Append",
+	ChanStrategyRefer:           "Refer",
+	ChanStrategyReplace:         "Replace",
+	ChanStrategyReplaceElements: "ReplaceElements",
+	ChanStrategyReplaceDeep:     "ReplaceDeep",
+}

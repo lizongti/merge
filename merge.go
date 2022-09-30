@@ -101,7 +101,7 @@ func (m *merger) mergeStruct(dst, src reflect.Value) (reflect.Value, error) {
 	case StructStrategyIgnore:
 		ret = makeValue(dst)
 
-	case StructStrategyReplaceStruct:
+	case StructStrategyReplace:
 		ret = makeValue(src)
 
 	case StructStrategyReplaceFields:
@@ -154,8 +154,14 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 	case SliceStrategyAppend:
 		ret = makeValue(reflect.AppendSlice(dst, src))
 
-	case SliceStrategyReplaceSlice:
+	case SliceStrategyRefer:
 		ret = makeValue(src)
+
+	case SliceStrategyReplace:
+		ret = makeZeroValue(src)
+		for i := 0; i < src.Len(); i++ {
+			ret = reflect.Append(ret, src.Index(i))
+		}
 
 	case SliceStrategyReplaceElementsDynamic:
 		max := int(math.Max(float64(dst.Len()), float64(src.Len())))
@@ -270,7 +276,7 @@ func (m *merger) mergeArray(dst, src reflect.Value) (reflect.Value, error) {
 	case ArrayStrategyIgnore:
 		ret = makeValue(dst)
 
-	case ArrayStrategyReplaceArray:
+	case ArrayStrategyReplace:
 		ret = makeValue(src)
 
 	case ArrayStrategyReplaceElements:
