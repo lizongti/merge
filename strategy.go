@@ -2,32 +2,24 @@ package merge
 
 import "fmt"
 
-type SliceStrategy int
+type ArrayStrategy int
 
 const (
-	SliceStrategyIgnore SliceStrategy = iota
-	SliceStrategyAppend
-	SliceStrategyRefer
-	SliceStrategyReplace
-	SliceStrategyReplaceElem
-	SliceStrategyReplaceElemDynamic
-	SliceStrategyReplaceDeep
-	SliceStrategyReplaceDeepDynamic
+	ArrayStrategyIgnore ArrayStrategy = iota
+	ArrayStrategyReplace
+	ArrayStrategyReplaceElem
+	ArrayStrategyReplaceDeep
 )
 
-var sliceStrategyNames = map[SliceStrategy]string{
-	SliceStrategyIgnore:             "Ignore",
-	SliceStrategyAppend:             "Append",
-	SliceStrategyRefer:              "Refer",
-	SliceStrategyReplace:            "Replace",
-	SliceStrategyReplaceElem:        "ReplaceElem",
-	SliceStrategyReplaceElemDynamic: "ReplaceElemDynamic",
-	SliceStrategyReplaceDeep:        "ReplaceDeep",
-	SliceStrategyReplaceDeepDynamic: "ReplaceDeepDynamic",
+var arrayStrategyNames = map[ArrayStrategy]string{
+	ArrayStrategyIgnore:      "Ignore",
+	ArrayStrategyReplace:     "Replace",
+	ArrayStrategyReplaceElem: "ReplaceElem",
+	ArrayStrategyReplaceDeep: "ReplaceDeep",
 }
 
-func (s SliceStrategy) String() string {
-	if v, ok := sliceStrategyNames[s]; ok {
+func (s ArrayStrategy) String() string {
+	if v, ok := arrayStrategyNames[s]; ok {
 		return v
 	}
 	return fmt.Errorf("%w: %d", ErrInvalidStrategy, s).Error()
@@ -56,24 +48,32 @@ func (s StructStrategy) String() string {
 	return fmt.Errorf("%w: %d", ErrInvalidStrategy, s).Error()
 }
 
-type ArrayStrategy int
+type SliceStrategy int
 
 const (
-	ArrayStrategyIgnore ArrayStrategy = iota
-	ArrayStrategyReplace
-	ArrayStrategyReplaceElem
-	ArrayStrategyReplaceDeep
+	SliceStrategyIgnore SliceStrategy = iota
+	SliceStrategyAppend
+	SliceStrategyRefer
+	SliceStrategyReplace
+	SliceStrategyReplaceElem
+	SliceStrategyReplaceElemDynamic
+	SliceStrategyReplaceDeep
+	SliceStrategyReplaceDeepDynamic
 )
 
-var arrayStrategyNames = map[ArrayStrategy]string{
-	ArrayStrategyIgnore:      "Ignore",
-	ArrayStrategyReplace:     "Replace",
-	ArrayStrategyReplaceElem: "ReplaceElem",
-	ArrayStrategyReplaceDeep: "ReplaceDeep",
+var sliceStrategyNames = map[SliceStrategy]string{
+	SliceStrategyIgnore:             "Ignore",
+	SliceStrategyAppend:             "Append",
+	SliceStrategyRefer:              "Refer",
+	SliceStrategyReplace:            "Replace",
+	SliceStrategyReplaceElem:        "ReplaceElem",
+	SliceStrategyReplaceElemDynamic: "ReplaceElemDynamic",
+	SliceStrategyReplaceDeep:        "ReplaceDeep",
+	SliceStrategyReplaceDeepDynamic: "ReplaceDeepDynamic",
 }
 
-func (s ArrayStrategy) String() string {
-	if v, ok := arrayStrategyNames[s]; ok {
+func (s SliceStrategy) String() string {
+	if v, ok := sliceStrategyNames[s]; ok {
 		return v
 	}
 	return fmt.Errorf("%w: %d", ErrInvalidStrategy, s).Error()
@@ -110,13 +110,17 @@ const (
 	MapStrategyRefer
 	MapStrategyReplace
 	MapStrategyReplaceElem
+	MapStrategyReplaceElemDynamic
 	MapStrategyReplaceDeep
+	MapStrategyReplaceDeepDynamic
 )
 
 var mapStrategyNames = map[MapStrategy]string{
-	MapStrategyIgnore:      "Ignore",
-	MapStrategyRefer:       "Refer",
-	MapStrategyReplace:     "Replace",
-	MapStrategyReplaceElem: "ReplaceElements",
-	MapStrategyReplaceDeep: "ReplaceDeep",
+	MapStrategyIgnore:             "Ignore",
+	MapStrategyRefer:              "Refer",
+	MapStrategyReplace:            "Replace",
+	MapStrategyReplaceElem:        "ReplaceElements",
+	MapStrategyReplaceElemDynamic: "ReplaceElementsDynamic",
+	MapStrategyReplaceDeep:        "ReplaceDeep",
+	MapStrategyReplaceDeepDynamic: "ReplaceDeepDynamic",
 }

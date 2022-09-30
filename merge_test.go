@@ -334,3 +334,48 @@ func TestChan(t *testing.T) {
 			merge.WithSliceStrategy(merge.SliceStrategyReplaceDeepDynamic),
 		).(csi)))
 }
+
+func TestMap(t *testing.T) {
+	type (
+		mii   = map[int]int
+		mimii = map[int]map[int]int
+	)
+	var (
+		m1 = mii{1: 1, 2: 2}
+		m2 = mii{3: 3, 4: 4}
+		m3 = mii{1: 11, 2: 22, 3: 33, 4: 44}
+		m4 = mimii{1: {1: 1, 2: 2}, 2: {3: 3, 4: 4}}
+		m5 = mimii{1: {1: 11, 2: 22, 3: 33}, 2: {3: 33, 4: 44}, 3: {5: 55, 6: 66}}
+	)
+
+	assert.Equal(t, m1, merge.MustMerge(m1, m2,
+		merge.WithMapStrategy(merge.MapStrategyIgnore),
+	).(mii))
+
+	assert.Equal(t, m2, merge.MustMerge(m1, m2,
+		merge.WithMapStrategy(merge.MapStrategyRefer),
+	).(mii))
+
+	assert.Equal(t, m2, merge.MustMerge(m1, m2,
+		merge.WithMapStrategy(merge.MapStrategyReplace),
+	).(mii))
+
+	assert.Equal(t, mii{1: 11, 2: 22}, merge.MustMerge(m1, m3,
+		merge.WithMapStrategy(merge.MapStrategyReplaceElem),
+	).(mii))
+
+	assert.Equal(t, mii{1: 11, 2: 22, 3: 33, 4: 44}, merge.MustMerge(m1, m3,
+		merge.WithMapStrategy(merge.MapStrategyReplaceElemDynamic),
+	).(mii))
+
+	assert.Equal(t, mimii{1: {1: 11, 2: 22}, 2: {3: 33, 4: 44}},
+		merge.MustMerge(m4, m5,
+			merge.WithMapStrategy(merge.MapStrategyReplaceDeep),
+		).(mimii))
+
+	assert.Equal(t, mimii{1: {1: 11, 2: 22, 3: 33},
+		2: {3: 33, 4: 44}, 3: {5: 55, 6: 66}},
+		merge.MustMerge(m4, m5,
+			merge.WithMapStrategy(merge.MapStrategyReplaceDeepDynamic),
+		).(mimii))
+}

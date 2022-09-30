@@ -34,28 +34,34 @@ type Options struct {
 	conditions Conditions
 
 	defaultResolver Resolver
-	sliceResolver   Resolver
-	structResolver  Resolver
 	arrayResolver   Resolver
+	structResolver  Resolver
+	sliceResolver   Resolver
 	chanResolver    Resolver
+	mapResolver     Resolver
 
-	sliceStrategy  SliceStrategy
-	structStrategy StructStrategy
 	arrayStrategy  ArrayStrategy
+	structStrategy StructStrategy
+	sliceStrategy  SliceStrategy
 	chanStrategy   ChanStrategy
+	mapStrategy    MapStrategy
 }
 
 var optionsDefault = Options{
 	conditions: newConditions(),
 
 	defaultResolver: ResolverNone,
-	structResolver:  ResolverNone,
 	arrayResolver:   ResolverNone,
+	structResolver:  ResolverNone,
+	sliceResolver:   ResolverNone,
 	chanResolver:    ResolverNone,
+	mapResolver:     ResolverNone,
 
-	sliceStrategy:  SliceStrategyIgnore,
-	structStrategy: StructStrategyIgnore,
 	arrayStrategy:  ArrayStrategyIgnore,
+	structStrategy: StructStrategyIgnore,
+	sliceStrategy:  SliceStrategyIgnore,
+	chanStrategy:   ChanStrategyIgnore,
+	mapStrategy:    MapStrategyIgnore,
 }
 
 func newOptions(opts []Option) *Options {
@@ -66,21 +72,15 @@ func newOptions(opts []Option) *Options {
 	return &config
 }
 
+func WithCondition(canCover Condition) Option {
+	return func(config *Options) {
+		config.conditions = append(config.conditions, canCover)
+	}
+}
+
 func WithDefaultResolver(resolver Resolver) Option {
 	return func(config *Options) {
 		config.defaultResolver = resolver
-	}
-}
-
-func WithSliceResolver(resolver Resolver) Option {
-	return func(config *Options) {
-		config.sliceResolver = resolver
-	}
-}
-
-func WithStructResolver(resolver Resolver) Option {
-	return func(config *Options) {
-		config.structResolver = resolver
 	}
 }
 
@@ -90,27 +90,21 @@ func WithArrayResolver(resolver Resolver) Option {
 	}
 }
 
+func WithStructResolver(resolver Resolver) Option {
+	return func(config *Options) {
+		config.structResolver = resolver
+	}
+}
+
+func WithSliceResolver(resolver Resolver) Option {
+	return func(config *Options) {
+		config.sliceResolver = resolver
+	}
+}
+
 func WithChanResolver(resolver Resolver) Option {
 	return func(config *Options) {
 		config.chanResolver = resolver
-	}
-}
-
-func WithCondition(canCover Condition) Option {
-	return func(config *Options) {
-		config.conditions = append(config.conditions, canCover)
-	}
-}
-
-func WithSliceStrategy(strategy SliceStrategy) Option {
-	return func(config *Options) {
-		config.sliceStrategy = strategy
-	}
-}
-
-func WithStructStrategy(strategy StructStrategy) Option {
-	return func(config *Options) {
-		config.structStrategy = strategy
 	}
 }
 
@@ -120,8 +114,26 @@ func WithArrayStrategy(strategy ArrayStrategy) Option {
 	}
 }
 
+func WithStructStrategy(strategy StructStrategy) Option {
+	return func(config *Options) {
+		config.structStrategy = strategy
+	}
+}
+
 func WithChanStrategy(strategy ChanStrategy) Option {
 	return func(config *Options) {
 		config.chanStrategy = strategy
+	}
+}
+
+func WithSliceStrategy(strategy SliceStrategy) Option {
+	return func(config *Options) {
+		config.sliceStrategy = strategy
+	}
+}
+
+func WithMapStrategy(strategy MapStrategy) Option {
+	return func(config *Options) {
+		config.mapStrategy = strategy
 	}
 }

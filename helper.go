@@ -20,7 +20,7 @@ func makePointer(v reflect.Value) reflect.Value {
 	return vRet
 }
 
-func makeValue(v reflect.Value) reflect.Value {
+func makeCopiedValue(v reflect.Value) reflect.Value {
 	ret := reflect.New(v.Type()).Elem()
 	ret.Set(v)
 	return ret
@@ -28,6 +28,19 @@ func makeValue(v reflect.Value) reflect.Value {
 
 func makeZeroValue(v reflect.Value) reflect.Value {
 	return reflect.New(v.Type()).Elem()
+}
+
+func makeEmptyValue(v reflect.Value) reflect.Value {
+	switch v.Kind() {
+	case reflect.Slice:
+		return reflect.MakeSlice(v.Type(), 0, 0)
+	case reflect.Map:
+		return reflect.MakeMap(v.Type())
+	case reflect.Chan:
+		return reflect.MakeChan(v.Type(), 0)
+	default:
+		return reflect.New(v.Type()).Elem()
+	}
 }
 
 func getFieldByName(v reflect.Value, name string) reflect.Value {
