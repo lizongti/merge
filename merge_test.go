@@ -201,12 +201,14 @@ func TestStruct(t *testing.T) {
 	assert.Equal(t, c{a: &a{A: 1}}, merge.MustMerge(s3, s4,
 		merge.WithStructStrategy(merge.StructStrategyReplace),
 		merge.WithStructResolver(merge.ResolverSingle),
+		merge.WithDefaultResolver(merge.ResolverSingle),
 	).(c))
 
 	assert.Equal(t, c{C: 1, a: &a{A: 1}}, merge.MustMerge(s3, s4,
 		merge.WithStructStrategy(merge.StructStrategyReplaceElem),
 		merge.WithStructResolver(merge.ResolverSingle),
 		merge.WithCondition(merge.ConditionSrcIsNotZero),
+		merge.WithDefaultResolver(merge.ResolverSingle),
 	).(c))
 
 	assert.Equal(t, c{C: 1, a: &a{A: 1}}, merge.MustMerge(s3, s4,
@@ -261,54 +263,74 @@ func TestArray(t *testing.T) {
 	).(a2a2))
 }
 
+func sliceToChan[t any](s []t) chan t {
+	c := make(chan t, len(s))
+	for index, length := 0, len(s); index < length; index++ {
+		c <- s[index]
+	}
+	return c
+}
+
+func chanToSlice[t any](c chan t) []t {
+	s := make([]t, len(c))
+	for index, length := 0, len(c); index < length; index++ {
+		s[index] = <-c
+	}
+	for index, length := 0, len(s); index < length; index++ {
+		c <- s[index]
+	}
+	return s
+}
+
 func TestChan(t *testing.T) {
 	type (
-		ci = chan int
+		ci  = chan int
+		csi = chan []int
 	)
 	var (
-		s2c = func(s []int) ci {
-			c := make(ci, len(s))
-			for index, length := 0, len(s); index < length; index++ {
-				c <- s[index]
-			}
-			return c
-		}
-		c2s = func(c ci) []int {
-			s := make([]int, 0, cap(c))
-			for index, length := 0, len(c); index < length; index++ {
-				s = append(s, <-c)
-			}
-			for index, length := 0, len(c); index < length; index++ {
-				c <- s[index]
-			}
-			return s
-		}
-
 		s1 = []int{1, 2}
 		s2 = []int{3, 4, 5}
 		s3 = []int{1, 2, 3, 4, 5}
-		c1 = s2c(s1)
-		c2 = s2c(s2)
-		c3 = s2c(s3)
+		s4 = [][]int{{1, 2}, {3, 4, 5}}
+		s5 = [][]int{{6, 7, 8, 9, 10}}
+		c1 = sliceToChan(s1)
+		c2 = sliceToChan(s2)
+		c3 = sliceToChan(s3)
+		c4 = sliceToChan(s4)
+		c5 = sliceToChan(s5)
 	)
 
-	assert.Equal(t, c2s(c1), c2s(merge.MustMerge(c1, c2,
+	assert.Equal(t, s1, chanToSlice(sliceToChan(s1)))
+
+	assert.Equal(t, chanToSlice(c1), chanToSlice(merge.MustMerge(c1, c2,
 		merge.WithChanStrategy(merge.ChanStrategyIgnore),
 	).(ci)))
 
-	assert.Equal(t, c2s(c2), c2s(merge.MustMerge(c1, c2,
+	assert.Equal(t, chanToSlice(c2), chanToSlice(merge.MustMerge(c1, c2,
 		merge.WithChanStrategy(merge.ChanStrategyRefer),
 	).(ci)))
 
-	assert.Equal(t, c2s(c2), c2s(merge.MustMerge(c1, c2,
+	assert.Equal(t, chanToSlice(c2), chanToSlice(merge.MustMerge(c1, c2,
 		merge.WithChanStrategy(merge.ChanStrategyReplace),
 	).(ci)))
 
-	assert.Equal(t, []int{3, 4, 5, 4, 5}, c2s(merge.MustMerge(c3, c2,
+	assert.Equal(t, []int{1, 2, 3}, chanToSlice(merge.MustMerge(c2, c3,
+		merge.WithChanStrategy(merge.ChanStrategyReplaceElem),
+	).(ci)))
+
+	assert.Equal(t, []int{1, 2, 3, 4, 5}, chanToSlice(merge.MustMerge(c2, c3,
 		merge.WithChanStrategy(merge.ChanStrategyReplaceElemDynamic),
 	).(ci)))
 
-	assert.Equal(t, []int{3, 4, 5, 4, 5}, c2s(merge.MustMerge(c3, c2,
-		merge.WithChanStrategy(merge.ChanStrategyReplaceDeepDynamic),
-	).(ci)))
+	assert.Equal(t, [][]int{{6, 7}, {3, 4, 5}},
+		chanToSlice(merge.MustMerge(c4, c5,
+			merge.WithChanStrategy(merge.ChanStrategyReplaceDeep),
+			merge.WithSliceStrategy(merge.SliceStrategyReplaceDeep),
+		).(csi)))
+
+	assert.Equal(t, [][]int{{6, 7, 8, 9, 10}, {3, 4, 5}},
+		chanToSlice(merge.MustMerge(c4, c5,
+			merge.WithChanStrategy(merge.ChanStrategyReplaceDeepDynamic),
+			merge.WithSliceStrategy(merge.SliceStrategyReplaceDeepDynamic),
+		).(csi)))
 }

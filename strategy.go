@@ -9,10 +9,10 @@ const (
 	SliceStrategyAppend
 	SliceStrategyRefer
 	SliceStrategyReplace
-	SliceStrategyReplaceElemDynamic
 	SliceStrategyReplaceElem
-	SliceStrategyReplaceDeepDynamic
+	SliceStrategyReplaceElemDynamic
 	SliceStrategyReplaceDeep
+	SliceStrategyReplaceDeepDynamic
 )
 
 var sliceStrategyNames = map[SliceStrategy]string{
@@ -20,10 +20,10 @@ var sliceStrategyNames = map[SliceStrategy]string{
 	SliceStrategyAppend:             "Append",
 	SliceStrategyRefer:              "Refer",
 	SliceStrategyReplace:            "Replace",
-	SliceStrategyReplaceElemDynamic: "ReplaceElemDynamic",
 	SliceStrategyReplaceElem:        "ReplaceElem",
-	SliceStrategyReplaceDeepDynamic: "ReplaceDeepDynamic",
+	SliceStrategyReplaceElemDynamic: "ReplaceElemDynamic",
 	SliceStrategyReplaceDeep:        "ReplaceDeep",
+	SliceStrategyReplaceDeepDynamic: "ReplaceDeepDynamic",
 }
 
 func (s SliceStrategy) String() string {
@@ -86,10 +86,10 @@ const (
 	ChanStrategyRefer
 	ChanStrategyAppend
 	ChanStrategyReplace
-	ChanStrategyReplaceElemDynamic
 	ChanStrategyReplaceElem
-	ChanStrategyReplaceDeepDynamic
+	ChanStrategyReplaceElemDynamic
 	ChanStrategyReplaceDeep
+	ChanStrategyReplaceDeepDynamic
 )
 
 var chanStrategyNames = map[ChanStrategy]string{
@@ -97,10 +97,10 @@ var chanStrategyNames = map[ChanStrategy]string{
 	ChanStrategyAppend:             "Append",
 	ChanStrategyRefer:              "Refer",
 	ChanStrategyReplace:            "Replace",
-	ChanStrategyReplaceElemDynamic: "ReplaceElemDynamic",
 	ChanStrategyReplaceElem:        "ReplaceElem",
-	ChanStrategyReplaceDeepDynamic: "ReplaceDeepDynamic",
+	ChanStrategyReplaceElemDynamic: "ReplaceElemDynamic",
 	ChanStrategyReplaceDeep:        "ReplaceDeep",
+	ChanStrategyReplaceDeepDynamic: "ReplaceDeepDynamic",
 }
 
 type MapStrategy int

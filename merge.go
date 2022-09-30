@@ -170,34 +170,6 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 			ret = reflect.Append(ret, src.Index(index))
 		}
 
-	case SliceStrategyReplaceElemDynamic:
-		ret = makeZeroValue(dst)
-		for index, length := 0, maxLen(src, dst); index < length; index++ {
-			var (
-				dstElem, srcElem reflect.Value
-				err              error
-				depth            int
-			)
-			if index < dst.Len() {
-				dstElem = dst.Index(index)
-			}
-			if index < src.Len() {
-				srcElem = src.Index(index)
-			}
-
-			dstElem, srcElem, depth, err =
-				resolve(dstElem, srcElem, m.sliceResolver)
-			if err != nil {
-				return reflect.Value{}, err
-			}
-
-			if m.conditions.Check(dstElem, srcElem) {
-				ret = reflect.Append(ret, makeDeepPointer(srcElem, depth))
-			} else {
-				ret = reflect.Append(ret, makeDeepPointer(dstElem, depth))
-			}
-		}
-
 	case SliceStrategyReplaceElem:
 		ret = makeZeroValue(dst)
 		for index, length := 0, maxLen(dst); index < length; index++ {
@@ -226,9 +198,37 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 			}
 		}
 
-	case SliceStrategyReplaceDeepDynamic:
+	case SliceStrategyReplaceElemDynamic:
 		ret = makeZeroValue(dst)
 		for index, length := 0, maxLen(src, dst); index < length; index++ {
+			var (
+				dstElem, srcElem reflect.Value
+				err              error
+				depth            int
+			)
+			if index < dst.Len() {
+				dstElem = dst.Index(index)
+			}
+			if index < src.Len() {
+				srcElem = src.Index(index)
+			}
+
+			dstElem, srcElem, depth, err =
+				resolve(dstElem, srcElem, m.sliceResolver)
+			if err != nil {
+				return reflect.Value{}, err
+			}
+
+			if m.conditions.Check(dstElem, srcElem) {
+				ret = reflect.Append(ret, makeDeepPointer(srcElem, depth))
+			} else {
+				ret = reflect.Append(ret, makeDeepPointer(dstElem, depth))
+			}
+		}
+
+	case SliceStrategyReplaceDeep:
+		ret = makeZeroValue(dst)
+		for index, length := 0, maxLen(dst); index < length; index++ {
 			var (
 				dstElem, srcElem reflect.Value
 				err              error
@@ -246,9 +246,9 @@ func (m *merger) mergeSlice(dst, src reflect.Value) (reflect.Value, error) {
 			ret = reflect.Append(ret, v)
 		}
 
-	case SliceStrategyReplaceDeep:
+	case SliceStrategyReplaceDeepDynamic:
 		ret = makeZeroValue(dst)
-		for index, length := 0, maxLen(dst); index < length; index++ {
+		for index, length := 0, maxLen(src, dst); index < length; index++ {
 			var (
 				dstElem, srcElem reflect.Value
 				err              error
@@ -360,6 +360,41 @@ func (m *merger) mergeChan(dst, src reflect.Value) (reflect.Value, error) {
 		srcSlice := chanToSlice(src)
 		ret = sliceToChan(srcSlice)
 
+	case ChanStrategyReplaceElem:
+		dstSlice := chanToSlice(dst)
+		srcSlice := chanToSlice(src)
+
+		retSlice := makeZeroValue(dstSlice)
+		for index, length := 0, maxLen(dstSlice); index < length; index++ {
+			var (
+				dstElem, srcElem reflect.Value
+				err              error
+				depth            int
+			)
+			if index < dstSlice.Len() {
+				dstElem = dstSlice.Index(index)
+			}
+			if index < srcSlice.Len() {
+				srcElem = srcSlice.Index(index)
+			}
+
+			dstElem, srcElem, depth, err =
+				resolve(dstElem, srcElem, m.chanResolver)
+			if err != nil {
+				return reflect.Value{}, err
+			}
+
+			if m.conditions.Check(dstElem, srcElem) {
+				retSlice = reflect.Append(retSlice,
+					makeDeepPointer(srcElem, depth))
+			} else {
+				retSlice = reflect.Append(retSlice,
+					makeDeepPointer(dstElem, depth))
+			}
+		}
+
+		ret = sliceToChan(retSlice)
+
 	case ChanStrategyReplaceElemDynamic:
 		dstSlice := chanToSlice(dst)
 		srcSlice := chanToSlice(src)
@@ -396,48 +431,12 @@ func (m *merger) mergeChan(dst, src reflect.Value) (reflect.Value, error) {
 
 		ret = sliceToChan(retSlice)
 
-	case ChanStrategyReplaceElem:
+	case ChanStrategyReplaceDeep:
 		dstSlice := chanToSlice(dst)
 		srcSlice := chanToSlice(src)
 
 		retSlice := makeZeroValue(dstSlice)
 		for index, length := 0, maxLen(dstSlice); index < length; index++ {
-			var (
-				dstElem, srcElem reflect.Value
-				err              error
-				depth            int
-			)
-			if index < dstSlice.Len() {
-				dstElem = dstSlice.Index(index)
-			}
-			if index < srcSlice.Len() {
-				srcElem = srcSlice.Index(index)
-			}
-
-			dstElem, srcElem, depth, err =
-				resolve(dstElem, srcElem, m.chanResolver)
-			if err != nil {
-				return reflect.Value{}, err
-			}
-
-			if m.conditions.Check(dstElem, srcElem) {
-				retSlice = reflect.Append(retSlice,
-					makeDeepPointer(srcElem, depth))
-			} else {
-				retSlice = reflect.Append(retSlice,
-					makeDeepPointer(dstElem, depth))
-			}
-		}
-
-		ret = sliceToChan(retSlice)
-
-	case ChanStrategyReplaceDeepDynamic:
-		dstSlice := chanToSlice(dst)
-		srcSlice := chanToSlice(src)
-
-		retSlice := makeZeroValue(dstSlice)
-		for index, length := 0,
-			maxLen(srcSlice, dstSlice); index < length; index++ {
 			var (
 				dstElem, srcElem reflect.Value
 				err              error
@@ -458,12 +457,13 @@ func (m *merger) mergeChan(dst, src reflect.Value) (reflect.Value, error) {
 
 		ret = sliceToChan(retSlice)
 
-	case ChanStrategyReplaceDeep:
+	case ChanStrategyReplaceDeepDynamic:
 		dstSlice := chanToSlice(dst)
 		srcSlice := chanToSlice(src)
 
 		retSlice := makeZeroValue(dstSlice)
-		for index, length := 0, maxLen(dstSlice); index < length; index++ {
+		for index, length := 0,
+			maxLen(srcSlice, dstSlice); index < length; index++ {
 			var (
 				dstElem, srcElem reflect.Value
 				err              error
