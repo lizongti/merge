@@ -5,11 +5,7 @@ import (
 	"reflect"
 )
 
-// Merge will fill any empty for value type attributes on the dst struct using corresponding
-// src attributes if they themselves are not empty. dst and src must be valid same-type structs
-// and dst must be a pointer to struct.
-// It won't merge unexported (private) fields and will do recursively any exported field.
-func Merge(dst, src interface{}, opts ...Option) (interface{}, error) {
+func Merge(dst, src any, opts ...Option) (any, error) {
 	options := newOptions(opts)
 	merger := newMerger(options)
 
@@ -24,7 +20,7 @@ func Merge(dst, src interface{}, opts ...Option) (interface{}, error) {
 	return vRet.Interface(), nil
 }
 
-func MustMerge(dst, src interface{}, opts ...Option) interface{} {
+func MustMerge(dst, src any, opts ...Option) any {
 	v, err := Merge(dst, src, opts...)
 	if err != nil {
 		panic(err)
@@ -32,7 +28,8 @@ func MustMerge(dst, src interface{}, opts ...Option) interface{} {
 	return v
 }
 
-func SafeMerge(dst, src interface{}, opts ...Option) (_ interface{}, err error) {
+func SafeMerge(dst, src any, opts ...Option) (
+	_ any, err error) {
 	defer func() {
 		if v := recover(); v != nil {
 			var ok bool
