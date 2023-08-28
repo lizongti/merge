@@ -1,0 +1,106 @@
+{
+    "terminal.integrated.env.windows": {
+        "PATH": "${cwd};${env:PATH}",
+    },
+    "debug.console.wordWrap": true,
+    "extensions.ignoreRecommendations": false,
+    "git.autofetchPeriod": 60,
+    "git.autofetch": true,
+    "git.fetchOnPull": true,
+    "git.autorefresh": true,
+    "files.eol": "\n",
+    "files.encoding": "utf8",
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 5000,
+    "files.trimTrailingWhitespace": true,
+    "files.saveConflictResolution": "overwriteFileOnDisk",
+    "editor.rulers": [
+        80,
+        120
+    ],
+    "editor.tabSize": 4,
+    "editor.formatOnType": true,
+    "editor.formatOnSaveMode": "file",
+    "editor.formatOnPaste": true,
+    "editor.formatOnSave": true,
+    "editor.parameterHints.enabled": true,
+    "editor.tabCompletion": "on",
+    "editor.insertSpaces": false,
+    "editor.defaultFormatter": null,
+    "editor.wordWrapColumn": 80,
+    "editor.wordWrap": "off",
+    "editor.fontFamily": "Fira Code",
+    "terminal.integrated.fontFamily": "Fira Code",
+    "go.testTimeout": "86400s",
+    "go.testFlags": [
+        "-v",
+        "-count=1", // Disable test cache
+    ],
+    "go.docsTool": "gogetdoc",
+    "go.formatTool": "gofumpt",
+    "go.formatFlags": [],
+    "go.lintTool": "golangci-lint",
+    "go.lintOnSave": "file",
+    "go.lintFlags": [
+        "--fast",
+        "--fix"
+    ],
+    "go.vetOnSave": "package",
+    "go.vetFlags": [
+        "-all"
+    ],
+    "go.enableCodeLens": {
+        "runtest": true
+    },
+    "go.buildOnSave": "package",
+    "go.gotoSymbol.ignoreFolders": [],
+    "go.inferGopath": false,
+    "go.gotoSymbol.includeGoroot": true,
+    "go.gotoSymbol.includeImports": true,
+    "go.installDependenciesWhenBuilding": true,
+    "go.useLanguageServer": true,
+    "go.languageServerFlags": [
+        "-rpc.trace",
+        "serve",
+        "--debug=localhost:6060"
+    ],
+    "go.languageServerExperimentalFeatures": {
+        "diagnostics": true
+    },
+    "go.autocompleteUnimportedPackages": true,
+    "go.coverOnTestPackage": true,
+    "go.liveErrors": {
+        "enabled": false,
+        "delay": 500
+    },
+    "go.useCodeSnippetsOnFunctionSuggest": true,
+    "go.useCodeSnippetsOnFunctionSuggestWithoutType": true,
+    "go.toolsManagement.checkForUpdates": "proxy",
+    "go.toolsEnvVars": {
+        "GOOS": "windows",
+        "GOARCH": "amd64",
+        "CGO_ENABLED": "1",
+        "GO111MODULE": "auto",
+    },
+    "clang-format.style": "google",
+    "clang-format.language.proto.enable": true,
+    "clang-format.language.proto.style": "",
+    "clang-format.language.proto.fallbackStyle": "",
+    "search.exclude": {
+        "vendor/**": true,
+        "**/.git": true,
+        ".data": true,
+        ".metals": true,
+        "**/__debug_bin.exe": true,
+    },
+    "files.exclude": {
+        "vendor/**": true,
+        "**/.git": true,
+        ".data": true,
+        ".metals": true,
+        "**/__debug_bin.exe": true,
+    },
+    "files.watcherExclude": {
+        "**/target": true
+    },
+}

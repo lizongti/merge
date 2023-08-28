@@ -14,10 +14,6 @@
     "files.autoSaveDelay": 5000,
     "files.trimTrailingWhitespace": true,
     "files.saveConflictResolution": "overwriteFileOnDisk",
-    "editor.rulers": [
-        80,
-        120
-    ],
     "editor.tabSize": 4,
     "editor.formatOnType": true,
     "editor.formatOnSaveMode": "file",
@@ -27,10 +23,10 @@
     "editor.tabCompletion": "on",
     "editor.insertSpaces": false,
     "editor.defaultFormatter": null,
-    "editor.wordWrapColumn": 80,
+    "editor.wordWrapColumn": 120,
     "editor.wordWrap": "off",
-    "editor.fontFamily": "Fira Code", // "Cascadia Code", "Fira Code", "Consolas", "Courier New", "Droid Sans Mono", "Menlo",  "Source Code Pro", "Monaco", "Lucida Console", "monospace"
-    "terminal.integrated.fontFamily": "Fira Code",
+    "editor.fontFamily": "Cascadia Code", // "Cascadia Code", "Fira Code", "Consolas", "Courier New", "Droid Sans Mono", "Menlo",  "Source Code Pro", "Monaco", "Lucida Console", "monospace"
+    "terminal.integrated.fontFamily": "Cascadia Code",
     "go.testTimeout": "86400s",
     "go.testFlags": [
         "-v",
